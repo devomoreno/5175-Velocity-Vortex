@@ -2,17 +2,16 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import com.qualcomm.robotcore.hardware.Servo;
+
 
 /**
- * Created by William Lord on 11/12/2016.
+ * Created by William Lord on 12/10/2016.
  */
-@Autonomous(name = "AutoPushBallCenterPark", group = "LinearOpMode")
+@Autonomous(name = "AutoPushBallCenterParkTimeRed", group = "LinearOpMode")
 
-public class AutoPushBallCenterPark extends LinearOpMode {
+public class AutoPushBallCenterParkTimeRed extends LinearOpMode {
     DcMotor left;
     DcMotor right;
 
@@ -30,9 +29,11 @@ public class AutoPushBallCenterPark extends LinearOpMode {
         sleep(10000);
         left.setPower(1);
         right.setPower(1);
-        sleep(6000);
+        sleep(4000);
         left.setPower(-1);
         right.setPower(-1);
+        sleep(1000);
+        left.setPower(-0.15);
         sleep(2000);
         // Park on the center vortex. Hopefully.
         left.setPower(0);

@@ -7,15 +7,20 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.Range;
 
-@TeleOp(name = "Two as One", group = "OpMode")
+/**
+ * Last modified 12/10/2016
+ * by William Lord
+ */
 
-
+@TeleOp(name = "Two as One + Spinning Zipties", group = "OpMode")
+@Disabled
 //import all hardware going to be used
-public class ContestJustButtons extends OpMode {
+public class DriveButtonsAndSpinner extends OpMode {
     //name Dcmotors and for purpose of the program
     //ex:  Dcmotor Greg
     DcMotor LeftWheel;
     DcMotor RightWheel;
+    DcMotor ZiptieSpinner;
     Servo LeftServo;
     Servo RightServo;
 
@@ -27,13 +32,14 @@ public class ContestJustButtons extends OpMode {
     double RightServoPosition;
 
 
-    public ContestJustButtons(){}
+    public DriveButtonsAndSpinner(){}
 
     @Override
             public void init(){
         LeftWheel =hardwareMap.dcMotor.get("LeftWheel");
         RightWheel=hardwareMap.dcMotor.get("RightWheel");
         RightWheel.setDirection(DcMotor.Direction.REVERSE);
+        ZiptieSpinner=hardwareMap.dcMotor.get("Spinner");
 
         LeftServo= hardwareMap.servo.get("LeftServo");
         RightServo = hardwareMap.servo.get("RightServo");
@@ -50,10 +56,10 @@ public class ContestJustButtons extends OpMode {
             public void loop(){
 
 
-        float left1=gamepad1.right_stick_y;
-        float right1=gamepad1.left_stick_y;
-        float left2=gamepad2.right_stick_y;
-        float right2=gamepad2.left_stick_y;
+        float left1=gamepad1.left_stick_y;
+        float right1=gamepad1.right_stick_y;
+        float left2=gamepad2.left_stick_y;
+        float right2=gamepad2.right_stick_y;
 
 
         right1= Range.clip(right1, -1, 1);
@@ -71,6 +77,8 @@ public class ContestJustButtons extends OpMode {
          forward/back, the other controller will not affect motion. Otherwise, both controllers are
          taken into account. */
         RightWheel.setPower(Range.clip(right1+right2, -1, 1));
+        // If start + b is pressed, set power to one, else set it to 0
+        ZiptieSpinner.setPower(((gamepad1.start && gamepad1.b) || (gamepad2.start && gamepad2.b)) ? 1 : 0);
 
         if(gamepad1.left_bumper || gamepad2.left_bumper){
             if(LeftServoPosition != 0){

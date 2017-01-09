@@ -3,17 +3,21 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.util.Range;
 
-@TeleOp(name="TeleOp", group="Opmode")
-@Disabled
+@TeleOp(name="LLAMA", group="Module")
+
 //import all hardware going to be used
-public class TemplateNew extends OpMode {
+public class ModuleLLAMA extends OpMode {
     //name Dcmotors and for purpose of the program
     //ex:  Dcmotor Greg
-    public TemplateNew(){}
+    DcMotor LLAMA;
+    public ModuleLLAMA(){}
 
     @Override
             public void init(){
+        LLAMA = hardwareMap.dcMotor.get("LLAMA");
 
         //map items here and set rules ( reference any vector baseline or basic programs)
 
@@ -21,6 +25,12 @@ public class TemplateNew extends OpMode {
     @Override
             public void loop(){
     //set all the driver and gamepad options. this is where the program goes.
+        if (gamepad1.a){
+            LLAMA.setPower(1  );
+        }
+        if (!gamepad1.a){
+            LLAMA.setPower(0);
+        }
     }
     @Override
         public void stop(){

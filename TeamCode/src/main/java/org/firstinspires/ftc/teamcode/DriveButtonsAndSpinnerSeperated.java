@@ -7,15 +7,20 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.Range;
 
-@TeleOp(name = "Two as One", group = "OpMode")
+/**
+ * Last modified 12/10/2016
+ * by William Lord
+ */
 
+@TeleOp(name = "As before + Spinning Zipties", group = "OpMode")
 
 //import all hardware going to be used
-public class ContestJustButtons extends OpMode {
-    //name Dcmotors and for purpose of the program
-    //ex:  Dcmotor Greg
+public class DriveButtonsAndSpinnerSeperated extends OpMode {
+    //name DcMotors and for purpose of the program
+    //ex:  DcMotor Greg
     DcMotor LeftWheel;
     DcMotor RightWheel;
+    DcMotor ZiptieSpinner;
     Servo LeftServo;
     Servo RightServo;
 
@@ -27,71 +32,64 @@ public class ContestJustButtons extends OpMode {
     double RightServoPosition;
 
 
-    public ContestJustButtons(){}
+    public DriveButtonsAndSpinnerSeperated(){}
 
     @Override
-            public void init(){
+    public void init(){
         LeftWheel =hardwareMap.dcMotor.get("LeftWheel");
         RightWheel=hardwareMap.dcMotor.get("RightWheel");
         RightWheel.setDirection(DcMotor.Direction.REVERSE);
+        ZiptieSpinner=hardwareMap.dcMotor.get("Spinner");
 
         LeftServo= hardwareMap.servo.get("LeftServo");
         RightServo = hardwareMap.servo.get("RightServo");
 
 
         LeftServoPosition = 1;
-        RightServoPosition =0;
+        RightServoPosition = 0;
 
 
-        //map itemshere and set rules ( reference any vector baseline or basic programs)
+        //map items here and set rules ( reference any vector baseline or basic programs)
 
     }
     @Override
-            public void loop(){
-
-
-        float left1=gamepad1.right_stick_y;
-        float right1=gamepad1.left_stick_y;
-        float left2=gamepad2.right_stick_y;
-        float right2=gamepad2.left_stick_y;
-
+    public void loop(){
+        float left1=gamepad1.left_stick_y;
+        float right1=gamepad1.right_stick_y;
+        float right2=gamepad2.right_stick_y;
 
         right1= Range.clip(right1, -1, 1);
         left1 = Range.clip(left1, -1, 1);
         right2= Range.clip(right2, -1, 1);
-        left2 = Range.clip(left2, -1, 1);
 
         right1 = (float)scaleInput(right1);
         left1 =  (float)scaleInput(left1);
         right2 = (float)scaleInput(right2);
-        left2 =  (float)scaleInput(left2);
 
-        LeftWheel.setPower(Range.clip(left1+left2, -1, 1)); /* Currently takes the sum of both
-         controller inputs and clips them to -1 and 1. If one joystick is pushed all the way
-         forward/back, the other controller will not affect motion. Otherwise, both controllers are
-         taken into account. */
-        RightWheel.setPower(Range.clip(right1+right2, -1, 1));
+        LeftWheel.setPower(left1);
+        RightWheel.setPower(right1);
+        ZiptieSpinner.setPower(right2);
 
-        if(gamepad1.left_bumper || gamepad2.left_bumper){
+        if(gamepad1.left_bumper){
             if(LeftServoPosition != 0){
                 LeftServoPosition -= servoDelta;
             }
 
         }
-        if (gamepad1.right_bumper || gamepad2.right_bumper){
+        if (gamepad1.right_bumper){
             if(RightServoPosition != SERVO_MAX_RANGE){
                 RightServoPosition += servoDelta;
             }
         }
         
-        if(gamepad1.right_trigger>0 || gamepad2.right_trigger>0){
+        if(gamepad1.right_trigger>0){
             if(RightServoPosition != 0){
                 RightServoPosition -= servoDelta;
             }
         }
         
         
-        if(gamepad1.left_trigger>0 || gamepad2.left_trigger>0){
+        if(gamepad1.left_trigger>0){
             if(LeftServoPosition != SERVO_MAX_RANGE){
                 LeftServoPosition += servoDelta;
             }
@@ -105,9 +103,10 @@ public class ContestJustButtons extends OpMode {
         RightServo.setPosition(RightServoPosition);
     //set all the driver and gamepad options. this is where the program goes.
     }
+
     @Override
-        public void stop(){
-        //this is, to my knowledge all that is needed for this public void
+    public void stop(){
+        //this is, to my knowledge, all that is needed for this function
     }
     //This is for the driving scale as far as this point it is ok without modification
     double scaleInput(double dVal)  {

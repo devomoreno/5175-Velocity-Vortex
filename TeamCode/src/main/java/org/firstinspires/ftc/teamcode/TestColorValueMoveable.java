@@ -1,33 +1,43 @@
 package org.firstinspires.ftc.teamcode;
 
+
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.Range;
 
-@TeleOp(name="Simple: Just Drive", group="Basics")
-
+@TeleOp(name="Color on Wheels", group="Test")
 //import all hardware going to be used
-public class JustDrive extends OpMode {
+public class TestColorValueMoveable extends OpMode {
     //name Dcmotors and for purpose of the program
-    //ex:  Dcmotor Greg
+    //ex:  Dcmotor Greg0
+    ColorSensor colorSensor;
     DcMotor LeftWheel;
     DcMotor RightWheel;
-    public JustDrive(){}
 
+    public TestColorValueMoveable(){}
 
     @Override
             public void init(){
+
+        //map items here and set rules ( reference any vector baseline or basic programs)
+
         LeftWheel =hardwareMap.dcMotor.get("LeftWheel");
         RightWheel=hardwareMap.dcMotor.get("RightWheel");
         LeftWheel.setDirection(DcMotor.Direction.REVERSE);
 
-        //map itemshere and set rules ( reference any vector baseline or basic programs)
+        // get a reference to our ColorSensor object.
+        colorSensor = hardwareMap.colorSensor.get("color sensor");
+
+        // Set the LED in the beginning
+
 
     }
     @Override
             public void loop(){
+
         float left=gamepad1.left_stick_y;
         float right=gamepad1.right_stick_y;
 
@@ -39,6 +49,26 @@ public class JustDrive extends OpMode {
 
         LeftWheel.setPower(left);
         RightWheel.setPower(right);
+
+        boolean bLedOn = true;
+
+        if(gamepad1.x) {
+            bLedOn = true;
+        }
+        if(gamepad1.y){
+            bLedOn = false;
+        }
+
+
+//True enables the LED and False disables the LED
+        colorSensor.enableLed(bLedOn);
+
+
+        telemetry.addData("LED", bLedOn ? "On" : "Off");
+        telemetry.addData("Clear", colorSensor.alpha());
+        telemetry.addData("Red  ", colorSensor.red());
+        telemetry.addData("Green", colorSensor.green());
+        telemetry.addData("Blue ", colorSensor.blue());
     //set all the driver and gamepad options. this is where the program goes.
     }
     @Override
@@ -67,4 +97,6 @@ public class JustDrive extends OpMode {
 
         return dScale;
     }
+
+
 }
