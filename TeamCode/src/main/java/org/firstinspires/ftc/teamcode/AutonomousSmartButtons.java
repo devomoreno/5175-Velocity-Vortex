@@ -31,7 +31,9 @@ public class AutonomousSmartButtons extends LinearOpMode {
     DcMotor RightWheel;
     ModernRoboticsI2cRangeSensor rangeSensor;
     Servo buttonPusher;
-    ColorSensor FloorSensor;
+    ColorSensor FloorSensorRight;
+    ColorSensor FLoorSensorLeft;
+
 
     @Override
     public void runOpMode() throws InterruptedException{
@@ -41,7 +43,8 @@ public class AutonomousSmartButtons extends LinearOpMode {
         RightWheel = hardwareMap.dcMotor.get("RightWheel");
         LeftWheel.setDirection(DcMotor.Direction.REVERSE);
         buttonPusher = hardwareMap.servo.get("Button Pusher");
-        FloorSensor = hardwareMap.colorSensor.get("color sensor");
+        FloorSensorRight = hardwareMap.colorSensor.get("Right color sensor");
+        FLoorSensorLeft = hardwareMap.colorSensor.get("Left color Sensor");
 
         double PUSHER_MIN = 0;
         double PUSHER_MAX = 1;
@@ -51,13 +54,14 @@ public class AutonomousSmartButtons extends LinearOpMode {
         //Throughout the code in the place of values. This is essencailly a valuebank and allows for
         //a smoother read anyway
         boolean isBlue = false;
-        double FlagAcceptedValMIN = ;
+        double FlagAcceptedVAL_MAX = ;
         double FlagAcceptedValMAX = ;
         double FLOOR_ACCEPTED_VAL_MIN = ;
         double FLOOR_ACCEPTED_VAL_MAX = ;
 
         colorSensor.enableLed(true);
-        FloorSensor.enableLed(true);
+        FloorSensorRight.enableLed(true);
+        FLoorSensorLeft.enableLed(true);
 
         waitForStart();
 
@@ -67,7 +71,7 @@ public class AutonomousSmartButtons extends LinearOpMode {
         buttonPusher.setPosition(PUSHER_MAX);
         sleep(200);
         //Test the flag color, if it is blue then set isBlue to true, by default this is false (red)
-        if(FlagAcceptedValMIN < colorSensor.blue() && colorSensor.blue()< FlagAcceptedValMAX){
+        if(FlagAcceptedVAL_MAX <= colorSensor.blue() && colorSensor.blue()<= FlagAcceptedValMAX){
             isBlue = true;
         }
         sleep(200);
@@ -108,14 +112,16 @@ public class AutonomousSmartButtons extends LinearOpMode {
         double PUSHER_MAX = 1;
         buttonPusher.scaleRange(PUSHER_MIN,PUSHER_MAX);
 
+        int didCross;
+
         double distance = 0;
         double AcceptedDistance = ;
         double FLOOR_ACCEPTED_VAL_MIN = ;
         double FLOOR_ACCEPTED_VAL_MAX = ;
-        double BlueAcceptedValMIN = ;
-        double BlueAcceptedValMAX = ;
-        double RedExpectedValMIN = ;
-        double RedExpectedValMAX = ;
+        double BLUE_EXPECTED_VAL_MAX = ;
+        double BLUE_EXPECTED_VAL_MIN = ;
+        double RED_EXPECTED_VAL_MAX = ;
+        double RED_EXPECTED_VAL_MIN = ;
 //Sets the range sensor active for the rest of the opmode
         while(opModeIsActive()){
             distance = rangeSensor.getDistance(DistanceUnit.CM);
@@ -130,16 +136,45 @@ public class AutonomousSmartButtons extends LinearOpMode {
         //move toward the white line
         LeftWheel.setPower(1);
         RightWheel.setPower(1);
-        //When the FloorSensor falls within the set parameters (i.e. Sees the white line), stop
-        if(FLOOR_ACCEPTED_VAL_MIN < FloorSensor.alpha()
-                && FloorSensor.alpha()< FLOOR_ACCEPTED_VAL_MAX){
-            LeftWheel.setPower(0);
-            RightWheel.setPower(0);
+        //When the FloorSensor falls within the set parameters (i.e. Sees the white line), stop. If
+        //the right side has passed, then reverse it, if it hasnt, make it come forward to
+        //align on the white line
+        if(FLOOR_ACCEPTED_VAL_MIN <= FloorSensorRight.alpha()
+                && FloorSensorRight.alpha()<= FLOOR_ACCEPTED_VAL_MAX){
+            didCross = 1;
+        }
+        else {
+            didCross = 0;
         }
 
+        if(FLOOR_ACCEPTED_VAL_MIN <= FLoorSensorLeft.alpha()
+                && FLoorSensorLeft.alpha()<= FLOOR_ACCEPTED_VAL_MAX){
+            LeftWheel.setPower(0);
+
+            switch (didCross){
+                case 1: RightWheel.setPower(-.5);
+                    if(FLOOR_ACCEPTED_VAL_MIN <= FloorSensorRight.alpha()
+                            && FloorSensorRight.alpha()<= FLOOR_ACCEPTED_VAL_MAX){
+                        RightWheel.setPower(0);
+                        break;
+                    }
+                case 0 :  RightWheel.setPower(.5);
+                    if(FLOOR_ACCEPTED_VAL_MIN <= FloorSensorRight.alpha()
+                            && FloorSensorRight.alpha()<= FLOOR_ACCEPTED_VAL_MAX){
+                        RightWheel.setPower(0);
+                        break;
+                    }
+                default: RightWheel.setPower(-.5);
+                    sleep(300):
+                    RightWheel.setPower(0);
+                    break;
+
+            }
+        }
+
+
 //This assumes starting off from the white line, this first peice is meant to correct its alignment
-        LeftWheel.setPower(-1);
-        sleep (750);
+
 
         //Just resets the commands
         LeftWheel.setPower(0);
@@ -148,18 +183,26 @@ public class AutonomousSmartButtons extends LinearOpMode {
         //gets the robot within an accepted distance bu inching it toward the wall. This is done by
         //bakcing up, and sending the left wheel foward frst, then matching the right side to the
         //white line
+        distance = rangeSensor.getDistance(DistanceUnit.CM);
         while(distance > AcceptedDistance){
             LeftWheel.setPower(-.5);
             RightWheel.setPower(-.5);
-            sleep(200);
-            LeftWheel.setPower(.5);
+            sleep(300);
             RightWheel.setPower(0);
-            sleep(250);
+            if(!(FLOOR_ACCEPTED_VAL_MIN <= FLoorSensorLeft.alpha()
+                    && FLoorSensorLeft.alpha()<= FLOOR_ACCEPTED_VAL_MAX)){
+                LeftWheel.setPower(.2);
+
+            }
+
+
             LeftWheel.setPower(0);
-            while(!(FLOOR_ACCEPTED_VAL_MIN < FloorSensor.alpha())){
-                RightWheel.setPower(.5);
+            if(!(FLOOR_ACCEPTED_VAL_MIN <= FloorSensorRight.alpha())){
+                RightWheel.setPower(.2);
             }
             RightWheel.setPower(0);
+
+            distance = rangeSensor.getDistance(DistanceUnit.CM);
 
         }
 
@@ -170,12 +213,12 @@ public class AutonomousSmartButtons extends LinearOpMode {
         //Essencially This next peice needs to loop until it finds and presses the blue button
         //as 1 = 1 is always a true statement, this will continue until the it reads the break line
         while(1 == 1){
-            if(BlueAcceptedValMIN < colorSensor.blue() && colorSensor.blue()< BlueAcceptedValMAX){
+            if(BLUE_EXPECTED_VAL_MIN <= colorSensor.blue() && colorSensor.blue()<= BLUE_EXPECTED_VAL_MAX){
                 buttonPusher.setPosition(PUSHER_MAX);
                 break;
 
             }
-            else if (RedExpectedValMIN < colorSensor.red() && colorSensor.red() < RedExpectedValMAX){
+            else if (RED_EXPECTED_VAL_MIN <= colorSensor.red() && colorSensor.red() <= RED_EXPECTED_VAL_MAX){
                 LeftWheel.setPower(.5);
                 RightWheel.setPower(.5);
                 sleep(200);
@@ -192,45 +235,93 @@ public class AutonomousSmartButtons extends LinearOpMode {
 
         //once coming to the white line of the second color randomizer, stop and start the above
         //process all over again
-        if(FLOOR_ACCEPTED_VAL_MIN < FloorSensor.alpha()
-                && FloorSensor.alpha()< FLOOR_ACCEPTED_VAL_MAX){
-            LeftWheel.setPower(0);
-            RightWheel.setPower(0);
+        if(FLOOR_ACCEPTED_VAL_MIN <= FloorSensorRight.alpha()
+                && FloorSensorRight.alpha()<= FLOOR_ACCEPTED_VAL_MAX){
+            didCross = 1;
         }
+        else {
+            didCross = 0;
+        }
+
+        if(FLOOR_ACCEPTED_VAL_MIN <= FLoorSensorLeft.alpha()
+                && FLoorSensorLeft.alpha()<= FLOOR_ACCEPTED_VAL_MAX){
+            LeftWheel.setPower(0);
+
+            switch (didCross){
+                case 1: RightWheel.setPower(-.5);
+                    if(FLOOR_ACCEPTED_VAL_MIN <= FloorSensorRight.alpha()
+                            && FloorSensorRight.alpha()<= FLOOR_ACCEPTED_VAL_MAX){
+                        RightWheel.setPower(0);
+                        break;
+                    }
+                case 0 :  RightWheel.setPower(.5);
+                    if(FLOOR_ACCEPTED_VAL_MIN <= FloorSensorRight.alpha()
+                            && FloorSensorRight.alpha()<= FLOOR_ACCEPTED_VAL_MAX){
+                        RightWheel.setPower(0);
+                        break;
+                    }
+                default: RightWheel.setPower(-.5);
+                    sleep(300):
+                    RightWheel.setPower(0);
+                    break;
+
+            }
+        }
+
+
+//This assumes starting off from the white line, this first peice is meant to correct its alignment
+
+
+        //Just resets the commands
+        LeftWheel.setPower(0);
+        RightWheel.setPower(0);
+
+        //gets the robot within an accepted distance bu inching it toward the wall. This is done by
+        //bakcing up, and sending the left wheel foward frst, then matching the right side to the
+        //white line
+        distance = rangeSensor.getDistance(DistanceUnit.CM);
         while(distance > AcceptedDistance){
             LeftWheel.setPower(-.5);
             RightWheel.setPower(-.5);
-            sleep(200);
-            LeftWheel.setPower(.5);
+            sleep(300);
             RightWheel.setPower(0);
-            sleep(250);
+            if(!(FLOOR_ACCEPTED_VAL_MIN <= FLoorSensorLeft.alpha()
+                    && FLoorSensorLeft.alpha()<= FLOOR_ACCEPTED_VAL_MAX)){
+                LeftWheel.setPower(.2);
+
+            }
+
+
             LeftWheel.setPower(0);
-            while(!(FLOOR_ACCEPTED_VAL_MIN < FloorSensor.alpha())){
-                RightWheel.setPower(.5);
+            if(!(FLOOR_ACCEPTED_VAL_MIN <= FloorSensorRight.alpha())){
+                RightWheel.setPower(.2);
             }
             RightWheel.setPower(0);
 
+            distance = rangeSensor.getDistance(DistanceUnit.CM);
+
         }
+
+        //When it is within the accepted distance, the robot will stop
         LeftWheel.setPower(0);
         RightWheel.setPower(0);
 
         //Essencially This next peice needs to loop until it finds and presses the blue button
         //as 1 = 1 is always a true statement, this will continue until the it reads the break line
         while(1 == 1){
-            if(BlueAcceptedValMIN < colorSensor.blue() && colorSensor.blue()< BlueAcceptedValMAX){
+            if(BLUE_EXPECTED_VAL_MIN <= colorSensor.blue() && colorSensor.blue()<= BLUE_EXPECTED_VAL_MAX){
                 buttonPusher.setPosition(PUSHER_MAX);
                 break;
 
             }
-            else if (RedExpectedValMIN < colorSensor.red()
-                    && colorSensor.red() < RedExpectedValMAX){
+            else if (RED_EXPECTED_VAL_MIN <= colorSensor.red() && colorSensor.red() <= RED_EXPECTED_VAL_MAX){
                 LeftWheel.setPower(.5);
                 RightWheel.setPower(.5);
                 sleep(200);
                 LeftWheel.setPower(0);
                 RightWheel.setPower(0);
             }
-         }
+        }
         LeftWheel.setPower(.5);
         RightWheel.setPower(.5);
         sleep(300);
@@ -249,7 +340,7 @@ public class AutonomousSmartButtons extends LinearOpMode {
 
 
     }
-    public void RedT0eam() throws InterruptedException{
+    public void RedTeam() throws InterruptedException{
         /*This Method contains all of the slight modifications needed to accomplish the goal of
          * this autonomous when we are on the red team */
 
@@ -265,12 +356,14 @@ public class AutonomousSmartButtons extends LinearOpMode {
         double PUSHER_MAX = 1;
         buttonPusher.scaleRange(PUSHER_MIN,PUSHER_MAX);
 
+        int didCross;
+
         double distance = 0;
         double AcceptedDistance = ;
         double FLOOR_ACCEPTED_VAL_MIN = ;
         double FLOOR_ACCEPTED_VAL_MAX = ;
-        double RED_ACCEPTED_VAL_MIN = ;
-        double RED_ACCEPTED_VAL_MAX = ;
+        double RED_EXPECTED_VAL_MIN = ;
+        double RED_EXPECTED_VAL_MAX = ;
         double BLUE_EXPECTED_VAL_MIN = ;
         double BLUE_EXPECTED_VAL_MAX = ;
 //Sets the range sensor active for the rest of the opmode
@@ -286,55 +379,91 @@ public class AutonomousSmartButtons extends LinearOpMode {
         //move toward the white line
         LeftWheel.setPower(1);
         RightWheel.setPower(1);
-        //When the FloorSensor falls within the set parameters (i.e. Sees the white line), stop
-        if(FLOOR_ACCEPTED_VAL_MIN < FloorSensor.alpha()
-                && FloorSensor.alpha()< FLOOR_ACCEPTED_VAL_MAX){
-            LeftWheel.setPower(0);
-            RightWheel.setPower(0);
+        //When the FloorSensor falls within the set parameters (i.e. Sees the white line), stop. If
+        //the right side has passed, then reverse it, if it hasnt, make it come forward to
+        //align on the white line
+        if(FLOOR_ACCEPTED_VAL_MIN <= FloorSensorRight.alpha()
+                && FloorSensorRight.alpha()<= FLOOR_ACCEPTED_VAL_MAX){
+            didCross = 1;
+        }
+        else {
+            didCross = 0;
         }
 
+        if(FLOOR_ACCEPTED_VAL_MIN <= FLoorSensorLeft.alpha()
+                && FLoorSensorLeft.alpha()<= FLOOR_ACCEPTED_VAL_MAX){
+            LeftWheel.setPower(0);
+
+            switch (didCross){
+                case 1: RightWheel.setPower(-.5);
+                    if(FLOOR_ACCEPTED_VAL_MIN <= FloorSensorRight.alpha()
+                            && FloorSensorRight.alpha()<= FLOOR_ACCEPTED_VAL_MAX){
+                        RightWheel.setPower(0);
+                        break;
+                    }
+                case 0 :  RightWheel.setPower(.5);
+                    if(FLOOR_ACCEPTED_VAL_MIN <= FloorSensorRight.alpha()
+                            && FloorSensorRight.alpha()<= FLOOR_ACCEPTED_VAL_MAX){
+                        RightWheel.setPower(0);
+                        break;
+                    }
+                default: RightWheel.setPower(-.5);
+                    sleep(300):
+                    RightWheel.setPower(0);
+                    break;
+
+            }
+        }
+
+
 //This assumes starting off from the white line, this first peice is meant to correct its alignment
-        LeftWheel.setPower(-1);
-        sleep (750);
+
 
         //Just resets the commands
         LeftWheel.setPower(0);
         RightWheel.setPower(0);
 
-        //gets the robot within an accepted distance bu inching it toward the wall. This is
-        //done by bakcing up, and sending the left wheel foward frst, then matching the right
-        //side to the white line
+        //gets the robot within an accepted distance bu inching it toward the wall. This is done by
+        //bakcing up, and sending the left wheel foward frst, then matching the right side to the
+        //white line
+        distance = rangeSensor.getDistance(DistanceUnit.CM);
         while(distance > AcceptedDistance){
             LeftWheel.setPower(-.5);
             RightWheel.setPower(-.5);
-            sleep(200);
-            LeftWheel.setPower(.5);
+            sleep(300);
             RightWheel.setPower(0);
-            sleep(250);
+            if(!(FLOOR_ACCEPTED_VAL_MIN <= FLoorSensorLeft.alpha()
+                    && FLoorSensorLeft.alpha()<= FLOOR_ACCEPTED_VAL_MAX)){
+                LeftWheel.setPower(.2);
+
+            }
+
+
             LeftWheel.setPower(0);
-            while(!(FLOOR_ACCEPTED_VAL_MIN < FloorSensor.alpha())){
-                RightWheel.setPower(.5);
+            if(!(FLOOR_ACCEPTED_VAL_MIN <= FloorSensorRight.alpha())){
+                RightWheel.setPower(.2);
             }
             RightWheel.setPower(0);
+
+            distance = rangeSensor.getDistance(DistanceUnit.CM);
 
         }
 
         //When it is within the accepted distance, the robot will stop
         LeftWheel.setPower(0);
         RightWheel.setPower(0);
-
         //Essencially This next peice needs to loop until it finds and presses the red button
         //as 1 = 1 is always a true statement, this will continue until the it reads the break
         // line
         while(1 == 1){
-            if(RED_ACCEPTED_VAL_MIN < colorSensor.red()
-                    && colorSensor.red()< RED_ACCEPTED_VAL_MAX){
+            if(RED_EXPECTED_VAL_MIN <= colorSensor.red()
+                    && colorSensor.red()<= RED_EXPECTED_VAL_MAX){
                 buttonPusher.setPosition(PUSHER_MAX);
                 break;
 
             }
-            else if (BLUE_EXPECTED_VAL_MIN < colorSensor.blue()
-                    && colorSensor.blue() < BLUE_EXPECTED_VAL_MAX){
+            else if (BLUE_EXPECTED_VAL_MIN <= colorSensor.blue()
+                    && colorSensor.blue() <= BLUE_EXPECTED_VAL_MAX){
                 LeftWheel.setPower(.5);
                 RightWheel.setPower(.5);
                 sleep(200);
@@ -351,40 +480,90 @@ public class AutonomousSmartButtons extends LinearOpMode {
 
         //once coming to the white line of the second color randomizer, stop and start the above
         //process all over again
-        if(FLOOR_ACCEPTED_VAL_MIN < FloorSensor.alpha() &&
-                FloorSensor.alpha()< FLOOR_ACCEPTED_VAL_MAX){
-            LeftWheel.setPower(0);
-            RightWheel.setPower(0);
+        if(FLOOR_ACCEPTED_VAL_MIN <= FloorSensorRight.alpha()
+                && FloorSensorRight.alpha()<= FLOOR_ACCEPTED_VAL_MAX){
+            didCross = 1;
         }
+        else {
+            didCross = 0;
+        }
+
+        if(FLOOR_ACCEPTED_VAL_MIN <= FLoorSensorLeft.alpha()
+                && FLoorSensorLeft.alpha()<= FLOOR_ACCEPTED_VAL_MAX){
+            LeftWheel.setPower(0);
+
+            switch (didCross){
+                case 1: RightWheel.setPower(-.5);
+                    if(FLOOR_ACCEPTED_VAL_MIN <= FloorSensorRight.alpha()
+                            && FloorSensorRight.alpha()<= FLOOR_ACCEPTED_VAL_MAX){
+                        RightWheel.setPower(0);
+                        break;
+                    }
+                case 0 :  RightWheel.setPower(.5);
+                    if(FLOOR_ACCEPTED_VAL_MIN <= FloorSensorRight.alpha()
+                            && FloorSensorRight.alpha()<= FLOOR_ACCEPTED_VAL_MAX){
+                        RightWheel.setPower(0);
+                        break;
+                    }
+                default: RightWheel.setPower(-.5);
+                    sleep(300):
+                    RightWheel.setPower(0);
+                    break;
+
+            }
+        }
+
+
+//This assumes starting off from the white line, this first peice is meant to correct its alignment
+
+
+        //Just resets the commands
+        LeftWheel.setPower(0);
+        RightWheel.setPower(0);
+
+        //gets the robot within an accepted distance bu inching it toward the wall. This is done by
+        //bakcing up, and sending the left wheel foward frst, then matching the right side to the
+        //white line
+        distance = rangeSensor.getDistance(DistanceUnit.CM);
         while(distance > AcceptedDistance){
             LeftWheel.setPower(-.5);
             RightWheel.setPower(-.5);
-            sleep(200);
-            LeftWheel.setPower(.5);
+            sleep(300);
             RightWheel.setPower(0);
-            sleep(250);
+            if(!(FLOOR_ACCEPTED_VAL_MIN <= FLoorSensorLeft.alpha()
+                    && FLoorSensorLeft.alpha()<= FLOOR_ACCEPTED_VAL_MAX)){
+                LeftWheel.setPower(.2);
+
+            }
+
+
             LeftWheel.setPower(0);
-            while(!(FLOOR_ACCEPTED_VAL_MIN < FloorSensor.alpha())){
-                RightWheel.setPower(.5);
+            if(!(FLOOR_ACCEPTED_VAL_MIN <= FloorSensorRight.alpha())){
+                RightWheel.setPower(.2);
             }
             RightWheel.setPower(0);
 
+            distance = rangeSensor.getDistance(DistanceUnit.CM);
+
         }
+
+        //When it is within the accepted distance, the robot will stop
         LeftWheel.setPower(0);
         RightWheel.setPower(0);
+
 
         //Essencially This next peice needs to loop until it finds and presses the red button
         //as 1 = 1 is always a true statement, this will continue until the it reads the break
         // line
         while(1 == 1){
-            if(RED_ACCEPTED_VAL_MIN < colorSensor.red()
-                    && colorSensor.red()< RED_ACCEPTED_VAL_MAX){
+            if(RED_EXPECTED_VAL_MIN <= colorSensor.red()
+                    && colorSensor.red()<= RED_EXPECTED_VAL_MAX){
                 buttonPusher.setPosition(PUSHER_MAX);
                 break;
 
             }
-            else if (BLUE_EXPECTED_VAL_MIN < colorSensor.blue()
-                    && colorSensor.blue() < BLUE_EXPECTED_VAL_MAX){
+            else if (BLUE_EXPECTED_VAL_MIN <= colorSensor.blue()
+                    && colorSensor.blue() <= BLUE_EXPECTED_VAL_MAX){
                 LeftWheel.setPower(.5);
                 RightWheel.setPower(.5);
                 sleep(200);
