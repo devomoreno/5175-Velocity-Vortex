@@ -9,6 +9,8 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.Range;
 
 @TeleOp(name="Color on Wheels", group="Test")
+@Disabled
+
 //import all hardware going to be used
 public class TestColorValueMoveable extends OpMode {
     //name Dcmotors and for purpose of the program

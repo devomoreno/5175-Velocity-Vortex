@@ -106,8 +106,9 @@ public class ContestJustButtons extends OpMode {
     //set all the driver and gamepad options. this is where the program goes.
     }
     @Override
-        public void stop(){
-        //this is, to my knowledge all that is needed for this public void
+    public void stop(){
+        LeftWheel.setPower(0.0);
+        RightWheel.setPower(0.0);
     }
     //This is for the driving scale as far as this point it is ok without modification
     double scaleInput(double dVal)  {

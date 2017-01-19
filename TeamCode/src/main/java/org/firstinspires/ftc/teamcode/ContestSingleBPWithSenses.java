@@ -6,31 +6,57 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.I2cAddr;
+import com.qualcomm.robotcore.hardware.I2cDevice;
+import com.qualcomm.robotcore.hardware.I2cDeviceSynch;
+import com.qualcomm.robotcore.hardware.I2cDeviceSynchImpl;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.Range;
 
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
-@TeleOp(name="Contest Op: Two As One", group="Opmode")
+@TeleOp(name="Sensor Op", group="Opmode")
 
-//import all hardware going to be used
+/*
+
+import all hardware going to be used
+*/
 public class ContestSingleBPWithSenses extends OpMode{
     //name Dcmotors and for purpose of the program
     //ex:  Dcmotor Greg
-    ColorSensor colorSensor;
+
     DcMotor LeftWheel;
     DcMotor RightWheel;
     ModernRoboticsI2cRangeSensor rangeSensor;
     Servo buttonPusher;
-    ColorSensor FloorSensorRight;
-    ColorSensor FLoorSensorLeft;
 
-    double FLOOR_ACCEPTED_VAL_MIN = ;
-    double FLOOR_ACCEPTED_VAL_MAX = ;
+    double FLOOR_ACCEPTED_VAL_MIN = 0;
+    double FLOOR_ACCEPTED_VAL_MAX = 30;
 
     double servoDelta = .005;
     double ServoPosition;
+
+    byte[] colorFlagcache;
+    byte[] colorFloorRightCache;
+    byte[] colorFloorLeftCache;
+
+    I2cDevice beaconFlagSensor;
+    I2cDevice FloorRight;
+    I2cDevice FloorLeft;
+
+    I2cDeviceSynch beaconFlagReader;
+    I2cDeviceSynch FloorRightReader;
+    I2cDeviceSynch FloorLeftReader;
+
+    boolean YtouchState = false;  //Tracks the last known state of the A button
+    boolean BtouchState = false;
+    boolean XtouchState = false;
+
+    boolean beaconFlagLEDState = true;     //Tracks the mode of the color sensor; Active = true, Passive = false
+    boolean FloorRightLEDState = true;
+    boolean FloorLeftLEDState = true;
+
 
 
 
@@ -39,17 +65,33 @@ public class ContestSingleBPWithSenses extends OpMode{
     @Override
             public void init(){
         rangeSensor = hardwareMap.get(ModernRoboticsI2cRangeSensor.class, "range sensor");
-        colorSensor = hardwareMap.colorSensor.get("color sensor");
+
         LeftWheel = hardwareMap.dcMotor.get("LeftWheel");
         RightWheel = hardwareMap.dcMotor.get("RightWheel");
-        LeftWheel.setDirection(DcMotor.Direction.REVERSE);
+        RightWheel.setDirection(DcMotor.Direction.REVERSE);
         buttonPusher = hardwareMap.servo.get("Button Pusher");
-        FloorSensorRight = hardwareMap.colorSensor.get("Right color sensor");
-        FLoorSensorLeft = hardwareMap.colorSensor.get("Left color sensor");
-
         double PUSHER_MIN = 0;
         double PUSHER_MAX = 1;
         buttonPusher.scaleRange(PUSHER_MIN,PUSHER_MAX);
+
+
+        beaconFlagSensor = hardwareMap.i2cDevice.get("color sensor");
+        FloorLeft = hardwareMap.i2cDevice.get("Left color sensor");
+        FloorRight = hardwareMap.i2cDevice.get("Right color sensor");
+
+        beaconFlagReader= new I2cDeviceSynchImpl(beaconFlagSensor, I2cAddr.create8bit(0x3c), false);
+        FloorLeftReader = new I2cDeviceSynchImpl(FloorLeft, I2cAddr.create8bit(0x3e), false);
+        FloorRightReader = new I2cDeviceSynchImpl(FloorRight, I2cAddr.create8bit(0x3a), false);
+
+        beaconFlagReader.engage();
+        FloorLeftReader.engage();
+        FloorRightReader.engage();
+
+
+        FloorRightReader.write8(3, 0);    //Set the mode of the color sensor using LEDState
+        FloorRightReader.write8(3, 0);
+
+
         //map items here and set rules ( reference any vector baseline or basic programs)
 
 
@@ -59,6 +101,9 @@ public class ContestSingleBPWithSenses extends OpMode{
     @Override
             public void loop() {
         //set all the driver and gamepad options. this is where the program goes.
+        colorFloorLeftCache = FloorLeftReader.read(0x04, 1);
+        colorFlagcache = beaconFlagReader.read(0x04, 1);
+        colorFloorRightCache = FloorRightReader.read(0x04, 1);
 
         //This is the driving commands
         float left1 = gamepad1.right_stick_y;
@@ -81,17 +126,18 @@ public class ContestSingleBPWithSenses extends OpMode{
          controller inputs and clips them to -1 and 1. If one joystick is pushed all the way
          forward/back, the other controller will not affect motion. Otherwise, both controllers are
          taken into account. */
-        RightWheel.setPower(Range.clip(right1 + right2, -1, 1));
+       RightWheel.setPower(Range.clip(right1 + right2, -1, 1));
+
 
         if (gamepad1.right_bumper || gamepad2.right_bumper) {
-            if (ServoPosition != 0) {
+            if (ServoPosition != 1) {
                 ServoPosition += servoDelta;
             }
         }
 
         if (gamepad1.right_trigger > 0 || gamepad2.right_trigger > 0) {
             if (ServoPosition != 0) {
-                ServoPosition += servoDelta;
+                ServoPosition -= servoDelta;
             }
         }
 
@@ -102,25 +148,30 @@ public class ContestSingleBPWithSenses extends OpMode{
         //and the color sensors on the bottom to press teh button more effecitnely.
 
         if (gamepad1.a || gamepad2.a) {
+            colorFloorLeftCache = FloorLeftReader.read(0x04, 1);
+           colorFloorRightCache = FloorRightReader.read(0x04, 1);
+            while(!((FLOOR_ACCEPTED_VAL_MIN <= (colorFloorLeftCache[0] & 0xFF)||
+                    FLOOR_ACCEPTED_VAL_MIN <= (colorFloorRightCache[0] & 0xFF)))) {
 
-            LeftWheel.setPower(.3);
-            RightWheel.setPower(.3);
+                colorFloorLeftCache = FloorLeftReader.read(0x04, 1);
+                colorFloorRightCache = FloorRightReader.read(0x04, 1);
 
-            if (FLOOR_ACCEPTED_VAL_MIN <= FLoorSensorLeft.alpha()
-                    && FLoorSensorLeft.alpha() <= FLOOR_ACCEPTED_VAL_MAX) {
-                LeftWheel.setPower(0);
+
+                LeftWheel.setPower(.3);
+                if (FLOOR_ACCEPTED_VAL_MIN <= (colorFloorLeftCache[0] & 0xFF)) {
+                    LeftWheel.setPower(0);
+                }
+                RightWheel.setPower(.3);
+                if (FLOOR_ACCEPTED_VAL_MIN <= (colorFloorRightCache[0] & 0xFF)) {
+                    RightWheel.setPower(0);
+                }
+                if (((RightWheel.getPower())==0)  && ((LeftWheel.getPower()) ==0)){
+                    break;
+                }
             }
-
-            if (FLOOR_ACCEPTED_VAL_MIN <= FloorSensorRight.alpha()
-                    && FloorSensorRight.alpha() <= FLOOR_ACCEPTED_VAL_MAX) {
-                RightWheel.setPower(0);
-
-
-            }
-
-            // this is the commands for the button pushers
 
         }
+
     }
     @Override
         public void stop(){
