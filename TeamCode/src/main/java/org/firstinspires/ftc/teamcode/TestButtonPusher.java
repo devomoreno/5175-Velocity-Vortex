@@ -8,7 +8,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.Range;
 
 @TeleOp(name = "ButtonPushers", group = "OpMode")
-
+@Disabled
 
 //import all hardware going to be used
 public class TestButtonPusher extends OpMode {

@@ -1,44 +1,41 @@
 package org.firstinspires.ftc.teamcode;
 
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.Range;
-
-@TeleOp(name="LLAMA", group="Module")
+@TeleOp (name = "Module Spinner", group = "Module")
 
 //import all hardware going to be used
-public class ModuleLLAMA extends OpMode {
+public class ModuleSpinner extends OpMode {
     //name Dcmotors and for purpose of the program
     //ex:  Dcmotor Greg
-    private DcMotor LLAMA;
-    public ModuleLLAMA(){}
+ private DcMotor Spinner;
+    public ModuleSpinner(){}
 
     @Override
             public void init(){
-        LLAMA = hardwareMap.dcMotor.get("LLAMA");
+        Spinner =hardwareMap.dcMotor.get("Spinner");
 
-        //map items here and set rules ( reference any vector baseline or basic programs)
+
+        //map itemshere and set rules ( reference any vector baseline or basic programs)
 
     }
     @Override
             public void loop(){
-    //set all the driver and gamepad options. this is where the program goes.
-        if (gamepad1.x){
-            LLAMA.setPower( 1 );
-        }
-        else{
-            LLAMA.setPower(0);
-        }
-        if (gamepad1.b){
-            LLAMA.setPower( -1 );
-        }
-        else{
-            LLAMA.setPower(0);
-        }
 
-        telemetry.addData("LLAMA Value", LLAMA.getCurrentPosition());
+        float motorPower=gamepad1.left_stick_y;
+
+        motorPower = Range.clip(motorPower, -1, 1);
+
+
+        motorPower =  (float)scaleInput(motorPower);
+
+        Spinner.setPower( Range.clip(motorPower, -1, 1));
+
+
+
+    //set all the driver and gamepad options. this is where the program goes.
     }
     @Override
         public void stop(){
@@ -46,7 +43,7 @@ public class ModuleLLAMA extends OpMode {
     }
     //This is for the driving scale as far as this point it is ok without modification
     double scaleInput(double dVal)  {
-        double[] scaleArray = { 0.0, 0.05, 0.09, 0.10, 0.12, 0.15, 0.18, 0.24,
+        double[] scaleArray = { 0.00, 0.05, 0.09, 0.10, 0.12, 0.15, 0.18, 0.24,
                 0.30, 0.36, 0.43, 0.50, 0.60, 0.72, 0.85, 1.00, 1.00 };
 
         // get the corresponding index for the scaleInput array.

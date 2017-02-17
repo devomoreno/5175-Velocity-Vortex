@@ -1,29 +1,25 @@
 package org.firstinspires.ftc.teamcode;
 
-import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cRangeSensor;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import com.qualcomm.robotcore.hardware.I2cAddr;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.Range;
 
-@TeleOp(name="Contest Op: Two As One", group="Opmode")
+@TeleOp(name="Spinner Op", group="Opmode")
 
 /*
 
 import all hardware going to be used
 */
-public class ContestSingleBPNoSenses extends OpMode{
+public class ContestWithSpinner extends OpMode{
     //name Dcmotors and for purpose of the program
     //ex:  Dcmotor Greg
 
     private DcMotor LeftWheel;
     private DcMotor RightWheel;
-
+    private DcMotor Spinner;
+    private DcMotor LLAMA;
 
     private Servo buttonPusher;
 
@@ -35,7 +31,7 @@ public class ContestSingleBPNoSenses extends OpMode{
 
 
 
-    public ContestSingleBPNoSenses(){}
+    public ContestWithSpinner(){}
 
     @Override
             public void init(){
@@ -45,6 +41,9 @@ public class ContestSingleBPNoSenses extends OpMode{
         RightWheel = hardwareMap.dcMotor.get("RightWheel");
         RightWheel.setDirection(DcMotor.Direction.REVERSE);
         buttonPusher = hardwareMap.servo.get("Button Pusher");
+        Spinner = hardwareMap.dcMotor.get("Spinner");
+        LLAMA = hardwareMap.dcMotor.get("LLAMA");
+
 
 
 
@@ -53,9 +52,7 @@ public class ContestSingleBPNoSenses extends OpMode{
         buttonPusher.scaleRange(PUSHER_MIN,PUSHER_MAX);
         buttonPusher.setDirection(Servo.Direction.REVERSE);
         //map items here and set rules ( reference any vector baseline or basic programs)
-
-
-
+                //i love you and you're a cute patoot. happy programming!!--ashton
 
     }
     @Override
@@ -65,33 +62,37 @@ public class ContestSingleBPNoSenses extends OpMode{
         //This is the driving commands
         float left1 = gamepad1.right_stick_y;
         float right1 = gamepad1.left_stick_y;
-        float left2 = gamepad2.right_stick_y;
-        float right2 = gamepad2.left_stick_y;
+
+        //for the spinner
+        float motorPower=gamepad2.left_stick_y;
+
+        //for the LLAMA
+        float LLAMAPower = gamepad2.right_stick_y;
 
 
         right1 = Range.clip(right1, -1, 1);
         left1 = Range.clip(left1, -1, 1);
-        right2 = Range.clip(right2, -1, 1);
-        left2 = Range.clip(left2, -1, 1);
+        motorPower = Range.clip(motorPower, -1, 1);
+        LLAMAPower = Range.clip(LLAMAPower,-1,1);
 
         right1 = (float) scaleInput(right1);
         left1 = (float) scaleInput(left1);
-        right2 = (float) scaleInput(right2);
-        left2 = (float) scaleInput(left2);
+        motorPower =  (float)scaleInput(motorPower);
+        LLAMAPower = (float)scaleInput((LLAMAPower));
 
-        LeftWheel.setPower(Range.clip(left1 + left2, -1, 1)); /* Currently takes the sum of both
-         controller inputs and clips them to -1 and 1. If one joystick is pushed all the way
-         forward/back, the other controller will not affect motion. Otherwise, both controllers are
-         taken into account. */
-       RightWheel.setPower(Range.clip(right1 + right2, -1, 1));
+        LLAMA.setPower(Range.clip(LLAMAPower, -1,1));
+        Spinner.setPower(Range.clip(motorPower, -1, 1));
+        LeftWheel.setPower(Range.clip(left1 , -1, 1));
+        RightWheel.setPower(Range.clip(right1, -1, 1));
 
-        if (gamepad1.right_bumper || gamepad2.left_bumper) {
+
+        if (gamepad1.right_bumper || gamepad2.right_bumper) {
             if (ServoPosition != 1) {
                 ServoPosition += servoDelta;
             }
         }
 
-        if (gamepad1.right_trigger > 0 || gamepad2.left_trigger > 0) {
+        if (gamepad1.right_trigger > 0 || gamepad2.right_trigger > 0) {
             if (ServoPosition != 0) {
                 ServoPosition -= servoDelta;
             }
@@ -99,6 +100,12 @@ public class ContestSingleBPNoSenses extends OpMode{
 
 
         buttonPusher.setPosition(ServoPosition);
+
+
+
+        telemetry.addData("Right Wheel", RightWheel.getCurrentPosition());
+        telemetry.addData("Left Wheel", LeftWheel.getCurrentPosition());
+        telemetry.addData("LLAMA", LLAMA.getCurrentPosition());
 
         // This part will be an automated process to press the button, It will use teh range sensor
         //and the color sensors on the bottom to press teh button more effecitnely.

@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cRangeSensor;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
@@ -18,7 +19,7 @@ import com.qualcomm.robotcore.hardware.Servo;
  *  */
 
 @Autonomous(name = "Line Test Simple" , group = "Sensors")
-
+@Disabled
 public class TestAutoStopLineSimple extends LinearOpMode {
 
     DcMotor LeftWheel;
@@ -141,5 +142,7 @@ public class TestAutoStopLineSimple extends LinearOpMode {
         }
 
 
-    }}
+    }
+
+    }
 }

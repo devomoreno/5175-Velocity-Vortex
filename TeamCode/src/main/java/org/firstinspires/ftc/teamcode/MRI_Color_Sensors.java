@@ -28,6 +28,7 @@ import com.qualcomm.robotcore.hardware.TouchSensor;
 
 
 @TeleOp(name = "Color Sensors", group = "MRI")
+@Disabled
 // @Autonomous(...) is the other common choice
 //@Disabled
 public class MRI_Color_Sensors extends OpMode {

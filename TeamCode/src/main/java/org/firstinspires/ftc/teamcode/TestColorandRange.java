@@ -11,6 +11,7 @@ import com.qualcomm.robotcore.util.Range;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 @TeleOp(name="Color Range Combo", group="Test")
+@Disabled
 //import all hardware going to be used
 public class TestColorandRange extends OpMode {
     //name Dcmotors and for purpose of the program

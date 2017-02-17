@@ -10,15 +10,15 @@ import com.qualcomm.robotcore.util.Range;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 @TeleOp(name="Range on Wheels", group="Test")
-
+@Disabled
 //import all hardware going to be used
 public class TestRangeMoveable extends OpMode {
     //name Dcmotors and for purpose of the program
     //ex:  Dcmotor Greg
-    DcMotor LeftWheel;
-    DcMotor RightWheel;
+    private DcMotor LeftWheel;
+    private DcMotor RightWheel;
 
-    ModernRoboticsI2cRangeSensor rangeSensor;
+    private ModernRoboticsI2cRangeSensor rangeSensor;
     public TestRangeMoveable(){}
 
     @Override

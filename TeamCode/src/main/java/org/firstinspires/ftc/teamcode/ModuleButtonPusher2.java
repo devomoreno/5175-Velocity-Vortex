@@ -6,7 +6,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.Range;
 @TeleOp(name="Button Pusher", group="Module")
-
+@Disabled
 
 //import all hardware going to be used
 public class ModuleButtonPusher2 extends OpMode {

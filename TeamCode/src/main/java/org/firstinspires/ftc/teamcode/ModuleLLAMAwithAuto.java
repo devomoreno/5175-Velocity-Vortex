@@ -1,44 +1,51 @@
 package org.firstinspires.ftc.teamcode;
 
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.Range;
 
-@TeleOp(name="LLAMA", group="Module")
+@TeleOp(name="LLAMA with Auto", group="Module")
 
 //import all hardware going to be used
-public class ModuleLLAMA extends OpMode {
+public class ModuleLLAMAwithAuto extends OpMode {
     //name Dcmotors and for purpose of the program
     //ex:  Dcmotor Greg
     private DcMotor LLAMA;
-    public ModuleLLAMA(){}
+    public ModuleLLAMAwithAuto(){}
 
     @Override
             public void init(){
         LLAMA = hardwareMap.dcMotor.get("LLAMA");
+
+
 
         //map items here and set rules ( reference any vector baseline or basic programs)
 
     }
     @Override
             public void loop(){
-    //set all the driver and gamepad options. this is where the program goes.
-        if (gamepad1.x){
-            LLAMA.setPower( 1 );
-        }
-        else{
-            LLAMA.setPower(0);
-        }
-        if (gamepad1.b){
-            LLAMA.setPower( -1 );
-        }
-        else{
-            LLAMA.setPower(0);
+
+        //TODO use actual rotation numbers as definded by the rotation tester
+        int maxPosition = 12;
+
+        float LLAMAPower = gamepad2.right_stick_y;
+        LLAMAPower = Range.clip(LLAMAPower,-1,1);
+        LLAMAPower = (float)scaleInput((LLAMAPower));
+        LLAMA.setPower(Range.clip(LLAMAPower, -1,1));
+
+        if(LLAMA.getCurrentPosition() > maxPosition+1){
+            LLAMA.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
         }
 
         telemetry.addData("LLAMA Value", LLAMA.getCurrentPosition());
+
+        if((gamepad2.a)){
+            LLAMA.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            LLAMA.setTargetPosition(maxPosition);
+            LLAMA.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+        }
     }
     @Override
         public void stop(){

@@ -13,7 +13,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 public class TestRangeSensor extends OpMode {
     //name Dcmotors and for purpose of the program
     //ex:  Dcmotor Greg
-    ModernRoboticsI2cRangeSensor rangeSensor;
+    private ModernRoboticsI2cRangeSensor rangeSensor;
     public TestRangeSensor(){}
 
     @Override

@@ -1,9 +1,10 @@
 package org.firstinspires.ftc.teamcode;
 
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.Range;
-
+@Disabled
 //import all hardware going to be used
 public class Modulewarthogdrive extends OpMode {
     //name Dcmotors and for purpose of the program

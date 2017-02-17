@@ -14,7 +14,7 @@ import com.qualcomm.robotcore.hardware.Servo;
  * Created by William Lord on 11/12/2016.
  */
 @Autonomous(name = "AutoPushBallCenterParkTimeBlue", group = "LinearOpMode")
-
+@Disabled
 public class AutoPushBallCenterParkTimeBlue extends LinearOpMode {
     DcMotor left;
     DcMotor right;

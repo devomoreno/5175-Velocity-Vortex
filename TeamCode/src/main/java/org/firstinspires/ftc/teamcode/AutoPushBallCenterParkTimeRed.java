@@ -1,6 +1,7 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -10,7 +11,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
  * Created by William Lord on 12/10/2016.
  */
 @Autonomous(name = "AutoPushBallCenterParkTimeRed", group = "LinearOpMode")
-
+@Disabled
 public class AutoPushBallCenterParkTimeRed extends LinearOpMode {
     DcMotor left;
     DcMotor right;

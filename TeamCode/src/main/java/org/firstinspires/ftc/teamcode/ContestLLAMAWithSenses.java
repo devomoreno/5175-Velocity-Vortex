@@ -4,7 +4,6 @@ import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cRangeSensor;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.I2cAddr;
 import com.qualcomm.robotcore.hardware.I2cDevice;
@@ -13,16 +12,13 @@ import com.qualcomm.robotcore.hardware.I2cDeviceSynchImpl;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.Range;
 
-
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-
-@TeleOp(name="Sensor Op", group="Opmode")
-
+@TeleOp(name="LLAMA sensor Op", group="Opmode")
+@Disabled
 /*
 
 import all hardware going to be used
 */
-public class ContestSingleBPWithSenses extends OpMode{
+public class ContestLLAMAWithSenses extends OpMode{
     //name Dcmotors and for purpose of the program
     //ex:  Dcmotor Greg
 
@@ -63,7 +59,7 @@ public class ContestSingleBPWithSenses extends OpMode{
 
 
 
-    public ContestSingleBPWithSenses(){}
+    public ContestLLAMAWithSenses(){}
 
     @Override
             public void init(){
@@ -73,6 +69,8 @@ public class ContestSingleBPWithSenses extends OpMode{
         RightWheel = hardwareMap.dcMotor.get("RightWheel");
         RightWheel.setDirection(DcMotor.Direction.REVERSE);
         buttonPusher = hardwareMap.servo.get("Button Pusher");
+
+        LLAMA= hardwareMap.dcMotor.get("LLAMA");
 
 
         double PUSHER_MIN = 0;
@@ -96,8 +94,6 @@ public class ContestSingleBPWithSenses extends OpMode{
 
         FloorRightReader.write8(3, 0);    //Set the mode of the color sensor using LEDState
         FloorRightReader.write8(3, 0);
-
-
         //map items here and set rules ( reference any vector baseline or basic programs)
 
 
@@ -134,13 +130,13 @@ public class ContestSingleBPWithSenses extends OpMode{
          taken into account. */
        RightWheel.setPower(Range.clip(right1 + right2, -1, 1));
 
-        if (gamepad1.right_bumper || gamepad2.left_bumper) {
+        if (gamepad1.right_bumper) {
             if (ServoPosition != 1) {
                 ServoPosition += servoDelta;
             }
         }
 
-        if (gamepad1.right_trigger > 0 || gamepad2.left_trigger > 0) {
+        if ( gamepad1.right_trigger > 0) {
             if (ServoPosition != 0) {
                 ServoPosition -= servoDelta;
             }
@@ -163,9 +159,7 @@ public class ContestSingleBPWithSenses extends OpMode{
                 colorFloorLeftCache = FloorLeftReader.read(0x04, 1);
                 colorFloorRightCache = FloorRightReader.read(0x04, 1);
 
-                if (((RightWheel.getPower())==0)  && ((LeftWheel.getPower()) ==0)){
-                    break;
-                }
+
                 if (FLOOR_ACCEPTED_VAL_MIN <= (colorFloorLeftCache[0] & 0xFF)) {
                     LeftWheel.setPower(0);
                 }
@@ -180,6 +174,19 @@ public class ContestSingleBPWithSenses extends OpMode{
 
             }
 
+        }
+
+        if (gamepad1.left_bumper){
+            LLAMA.setPower( 1 );
+        }
+        else{
+            LLAMA.setPower(0);
+        }
+        if (gamepad1.right_trigger > 0){
+            LLAMA.setPower( -1 );
+        }
+        else{
+            LLAMA.setPower(0);
         }
 
     }

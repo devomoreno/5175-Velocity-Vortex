@@ -1,44 +1,55 @@
 package org.firstinspires.ftc.teamcode;
 
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.Range;
 
-@TeleOp(name="Simple: Just Drive", group="Basics")
-@Disabled
+@TeleOp(name = "Test wheel", group = "Module")
 //import all hardware going to be used
-public class JustDrive extends OpMode {
+public class TestWheelRotations extends OpMode {
     //name Dcmotors and for purpose of the program
     //ex:  Dcmotor Greg
-    private DcMotor LeftWheel;
     private DcMotor RightWheel;
-    public JustDrive(){}
+    private DcMotor LeftWheel;
 
+    public TestWheelRotations(){}
 
     @Override
             public void init(){
-        LeftWheel =hardwareMap.dcMotor.get("LeftWheel");
-        RightWheel=hardwareMap.dcMotor.get("RightWheel");
-        LeftWheel.setDirection(DcMotor.Direction.REVERSE);
+        RightWheel =hardwareMap.dcMotor.get("RightWheel");
+        RightWheel.setDirection(DcMotorSimple.Direction.REVERSE);
+        LeftWheel = hardwareMap.dcMotor.get ("LeftWheel");
+
+
 
         //map itemshere and set rules ( reference any vector baseline or basic programs)
 
     }
     @Override
             public void loop(){
-        float left=gamepad1.left_stick_y;
-        float right=gamepad1.right_stick_y;
 
-        right= Range.clip(right, -1, 1);
-        left = Range.clip(left, -1, 1);
+        float motorPower=gamepad1.left_stick_y;
+        float rightPower =  gamepad1.right_stick_y;
 
-        right = (float)scaleInput(right);
-        left =  (float)scaleInput(left);
+        motorPower = Range.clip(motorPower, -1, 1);
+        rightPower = Range.clip(rightPower, -1,1);
 
-        LeftWheel.setPower(left);
-        RightWheel.setPower(right);
+
+        motorPower =  (float)scaleInput(motorPower);
+        rightPower = (float) scaleInput(rightPower);
+
+        LeftWheel.setPower(motorPower);
+        RightWheel.setPower(rightPower);
+
+        if(gamepad1.y){
+            LeftWheel.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            RightWheel.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        }
+
+        telemetry.addData("Right value ", RightWheel.getCurrentPosition());
+        telemetry.addData("Left Value", LeftWheel.getCurrentPosition());
     //set all the driver and gamepad options. this is where the program goes.
     }
     @Override
