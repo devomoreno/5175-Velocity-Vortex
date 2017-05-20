@@ -48,9 +48,9 @@ public class Moduletankdrive extends OpMode {
         // get the corresponding index for the scaleInput array.
         int index = (int) (dVal * 16.0);
         if (index < 0) {
-            index = -index;
-        } else if (index > 16) {
-            index = 16;
+                index = -index;
+            } else if (index > 16) {
+                index = 16;
         }
 
         double dScale = 0.0;

@@ -2,7 +2,6 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cRangeSensor;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -18,10 +17,10 @@ import com.qualcomm.robotcore.hardware.Servo;
  * This is designed to test the module we have currently deciding on what buttons to press
  */
 
-    @Autonomous(name = "Module Press Button", group = "Sensors")
+    @Autonomous(name = "Encoder Module Press Button", group = "Sensors")
 
 
-    public class TestModuleColorPress extends LinearOpMode {
+    public class TestEncoderModuleColorPress extends LinearOpMode {
 
     private DcMotor LeftWheel;
     private DcMotor RightWheel;
@@ -133,86 +132,85 @@ import com.qualcomm.robotcore.hardware.Servo;
         leftFloorCache = FloorLeftReader.read(0x04, 1);
         topCache = beaconFlagReader.read(0x04, 1);
         rightFloorCache = FloorRightReader.read(0x04, 1);
-
-
         int didPress = 2;
 
+        int target;
         beaconFlagReader.write8(3, 1);
 
-            buttonPusher.setPosition(PUSHER_MIN);
+        buttonPusher.setPosition(PUSHER_MIN);
 
-            topCache = beaconFlagReader.read(0x04, 1);
+        leftFloorCache = FloorLeftReader.read(0x04, 1);
+        topCache = beaconFlagReader.read(0x04, 1);
+        rightFloorCache = FloorRightReader.read(0x04, 1);
 
-            leftFloorCache = FloorLeftReader.read(0x04, 1);
-            topCache = beaconFlagReader.read(0x04, 1);
-            rightFloorCache = FloorRightReader.read(0x04, 1);
+        if ((topCache[0] & 0xFF) <= 4 && (topCache[0] & 0xFF) > 0 && (topCache[0] & 0xFF) < 16) {
 
-
-            if ((topCache[0] & 0xFF) <=4  && (topCache[0] & 0xFF) > 0 &&(topCache[0] & 0xFF) <16) {
-                LeftWheel.setPower(.1);
-                RightWheel.setPower(.1);
-                sleep(100);
-                LeftWheel.setPower(0);
-                RightWheel.setPower(0);
-
-                telemetry.addLine("Color Detected, Pressing Button...");
-                telemetry.update();
-                buttonPusher.setPosition(PUSHER_MAX);
+            telemetry.addLine("Color Detected, Pressing Button...");
+            telemetry.update();
+            buttonPusher.setPosition(PUSHER_MAX);
 
 
-                didPress = 1;
-                sleep(1000);
-            } else {
-                didPress = 0;
-            }
-
-
-            //Essencially This next peice needs to loop until it finds and presses the blue button
-            //as 1 = 1 is always a true statement, this will continue until the it reads the break line
-
-            leftFloorCache = FloorLeftReader.read(0x04, 1);
-            topCache = beaconFlagReader.read(0x04, 1);
-            rightFloorCache = FloorRightReader.read(0x04, 1);
-            while ((opModeIsActive()) && 1 == 1) {
-
-                LeftWheel.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-                RightWheel.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-                LLAMA.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-
-                leftFloorCache = FloorLeftReader.read(0x04, 1);
-                topCache = beaconFlagReader.read(0x04, 1);
-                rightFloorCache = FloorRightReader.read(0x04, 1);
-
-                if (didPress == 1) {
-                    break;
-                } else if ((topCache[0] & 0xFF) <= 4 && (topCache[0] & 0xFF) > 0) {
-                    LeftWheel.setPower(.2);
-                    RightWheel.setPower(.2);
-                    sleep(300);
-                    LeftWheel.setPower(0);
-                    RightWheel.setPower(0);
-                    telemetry.addLine("Color Detected, Pressing Button...");
-                    telemetry.update();
-                    buttonPusher.setPosition(PUSHER_MAX);
-                    sleep(1000);
-                    break;
-                } else if ((topCache[0] & 0xFF) >=7 && (topCache[0] & 0xFF) >= 0) {
-                    LeftWheel.setPower(.5);
-                    RightWheel.setPower(.5);
-                    sleep(200);
-                    LeftWheel.setPower(0);
-                    RightWheel.setPower(0);
-                }
-
-
-            }
-            // go foward full power for one second before pulling the button pusher back in
-            LeftWheel.setPower(.3);
-            RightWheel.setPower(.3);
+            didPress = 1;
             sleep(1000);
-            LeftWheel.setPower(0);
-            RightWheel.setPower(0);
+
             buttonPusher.setPosition(PUSHER_MIN);
+        } else {
+            didPress = 0;
+        }
+
+
+        //Essencially This next peice needs to loop until it finds and presses the blue button
+        //as 1 = 1 is always a true statement, this will continue until the it reads the break line
+        RightWheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        LeftWheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        RightWheel.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        LeftWheel.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+        RightWheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        LeftWheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+        RightWheel.setPower(.3);
+        LeftWheel.setPower(.3);
+
+        leftFloorCache = FloorLeftReader.read(0x04, 1);
+        topCache = beaconFlagReader.read(0x04, 1);
+        rightFloorCache = FloorRightReader.read(0x04, 1);
+
+        for (target = 0; opModeIsActive() && didPress != 1 && 1 == 1; target += 10) {
+            if ((topCache[0] & 0xFF) <= 4 && (topCache[0] & 0xFF) > 0
+                    && (topCache[0] & 0xFF) < 16) {
+                buttonPusher.setPosition(PUSHER_MAX);
+                sleep(1000);
+                buttonPusher.setPosition(PUSHER_MIN);
+                break;
+            } else if ((topCache[0] & 0xFF) >= 7 && (topCache[0] & 0xFF) < 16) {
+
+                RightWheel.setTargetPosition(target);
+                LeftWheel.setTargetPosition(target);
+            }
+            RightWheel.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            LeftWheel.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            if (RightWheel.isBusy()) {
+                while ((RightWheel.isBusy()) && opModeIsActive()) {
+
+                    topCache = beaconFlagReader.read(0x04, 1);
+
+                    if (((topCache[0] & 0xFF) <= 4 && (topCache[0] & 0xFF) > 0
+                            && (topCache[0] & 0xFF) < 16)) {
+
+                        RightWheel.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                        LeftWheel.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                        buttonPusher.setPosition(PUSHER_MAX);
+                        sleep(1000);
+                        buttonPusher.setPosition(PUSHER_MIN);
+                        break;
+
+
+                    }
+                }
+            }
+        }
 
         }
 

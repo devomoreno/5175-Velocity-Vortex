@@ -52,7 +52,6 @@ public class ContestWithSpinner extends OpMode{
         buttonPusher.scaleRange(PUSHER_MIN,PUSHER_MAX);
         buttonPusher.setDirection(Servo.Direction.REVERSE);
         //map items here and set rules ( reference any vector baseline or basic programs)
-                //i love you and you're a cute patoot. happy programming!!--ashton
 
     }
     @Override
@@ -64,7 +63,7 @@ public class ContestWithSpinner extends OpMode{
         float right1 = gamepad1.left_stick_y;
 
         //for the spinner
-        float motorPower=gamepad2.left_stick_y;
+        float motorPower = gamepad2.left_stick_y;
 
         //for the LLAMA
         float LLAMAPower = gamepad2.right_stick_y;
@@ -72,51 +71,57 @@ public class ContestWithSpinner extends OpMode{
 
         right1 = Range.clip(right1, -1, 1);
         left1 = Range.clip(left1, -1, 1);
-        motorPower = Range.clip(motorPower, -1, 1);
-        LLAMAPower = Range.clip(LLAMAPower,-1,1);
+        LLAMAPower = Range.clip(LLAMAPower, -1, 1);
 
         right1 = (float) scaleInput(right1);
         left1 = (float) scaleInput(left1);
-        motorPower =  (float)scaleInput(motorPower);
-        LLAMAPower = (float)scaleInput((LLAMAPower));
+        motorPower = (float) scaleInput(motorPower);
+        LLAMAPower = (float) scaleInput((LLAMAPower));
 
-        LLAMA.setPower(Range.clip(LLAMAPower, -1,1));
-        Spinner.setPower(Range.clip(motorPower, -1, 1));
-        LeftWheel.setPower(Range.clip(left1 , -1, 1));
+        LLAMA.setPower(Range.clip(LLAMAPower, -1, 1));
+        LeftWheel.setPower(Range.clip(left1, -1, 1));
         RightWheel.setPower(Range.clip(right1, -1, 1));
-
-
-        if (gamepad1.right_bumper || gamepad2.right_bumper) {
+        Spinner.setPower(Range.clip(motorPower , -1, 1));
+        // Gamepad 2
+        if (gamepad2.right_bumper) {
             if (ServoPosition != 1) {
                 ServoPosition += servoDelta;
             }
         }
 
-        if (gamepad1.right_trigger > 0 || gamepad2.right_trigger > 0) {
+        if (gamepad2.right_trigger > 0) {
             if (ServoPosition != 0) {
                 ServoPosition -= servoDelta;
             }
         }
 
+        // Gamepad 1
+        if (gamepad1.right_bumper) {
+            if (ServoPosition != 1) {
+                ServoPosition = 1;
+            }
+        }
+        if (gamepad1.left_bumper) {
+            if (ServoPosition != 0) {
+                ServoPosition = 0;
+            }
+        }
 
-        buttonPusher.setPosition(ServoPosition);
+            buttonPusher.setPosition(ServoPosition);
 
 
 
-        telemetry.addData("Right Wheel", RightWheel.getCurrentPosition());
-        telemetry.addData("Left Wheel", LeftWheel.getCurrentPosition());
-        telemetry.addData("LLAMA", LLAMA.getCurrentPosition());
+            telemetry.addData("Right Wheel", RightWheel.getCurrentPosition());
+            telemetry.addData("Left Wheel", LeftWheel.getCurrentPosition());
+            telemetry.addData("LLAMA", LLAMA.getCurrentPosition());
 
-        // This part will be an automated process to press the button, It will use teh range sensor
-        //and the color sensors on the bottom to press teh button more effecitnely.
+            // This part will be an automated process to press the button, It will use teh range sensor
+            //and the color sensors on the bottom to press teh button more effecitnely.
 
 
         }
 
-    @Override
-        public void stop(){
-        //this is, to my knowledge all that is needed for this public void
-    }
+
     //This is for the driving scale as far as this point it is ok without modification
     double scaleInput(double dVal)  {
         double[] scaleArray = { 0.0, 0.05, 0.09, 0.10, 0.12, 0.15, 0.18, 0.24,

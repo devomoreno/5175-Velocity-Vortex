@@ -10,7 +10,7 @@ import com.qualcomm.robotcore.hardware.I2cDeviceSynchImpl;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.Range;
 
-@TeleOp(name="Spinner Op With Sensors", group="Opmode")
+@TeleOp(name="State UIL", group="Opmode")
 
 /*
 
@@ -105,6 +105,7 @@ public class ContestWithSpinnerWithSensors extends OpMode{
         //set all the driver and gamepad options. this is where the program goes.
         //FIXME find and replace correct data
         int LLAMAmaxPosition = 1;
+        double x;
         //This is the driving commands
         float left1 = gamepad1.right_stick_y;
         float right1 = gamepad1.left_stick_y;
@@ -115,21 +116,33 @@ public class ContestWithSpinnerWithSensors extends OpMode{
         //for the LLAMA
         float LLAMAPower = gamepad2.right_stick_y;
 
+        if (gamepad1.x){
+            x = .5;
+        }
+
+        else if (gamepad1.b){
+            x = -.5;
+        }
+        else{
+            x = 0;
+        }
+
 
         right1 = Range.clip(right1, -1, 1);
         left1 = Range.clip(left1, -1, 1);
         motorPower = Range.clip(motorPower, -1, 1);
-        LLAMAPower = Range.clip(LLAMAPower,-1,1);
+        LLAMAPower = Range.clip((LLAMAPower + (float)x),-1,1);
 
         right1 = (float) scaleInput(right1);
         left1 = (float) scaleInput(left1);
         motorPower =  (float)scaleInput(motorPower);
-        LLAMAPower = (float)scaleInput((LLAMAPower));
+        LLAMAPower = (float)scaleInput((LLAMAPower + (float)x));
 
         LLAMA.setPower(Range.clip(LLAMAPower, -1,1));
 
         if(LLAMA.getCurrentPosition()> LLAMAmaxPosition+1){
             LLAMA.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            LLAMA.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         }
         Spinner.setPower(Range.clip(motorPower, -1, 1));
         LeftWheel.setPower(Range.clip(left1 , -1, 1));
@@ -158,6 +171,7 @@ public class ContestWithSpinnerWithSensors extends OpMode{
             LLAMA.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             LLAMA.setTargetPosition(LLAMAmaxPosition);
             LLAMA.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            LLAMA.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         }
 
 

@@ -45,10 +45,10 @@ public class ModuleLineFinder extends LinearOpMode {
 
 
     @Override
-    public void runOpMode() throws InterruptedException{
+    public void runOpMode() throws InterruptedException {
 
         RightWheel = hardwareMap.dcMotor.get("RightWheel");
-        RightWheel.setDirection(DcMotorSimple.Direction.REVERSE);
+        LeftWheel.setDirection(DcMotorSimple.Direction.REVERSE);
         RightWheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         RightWheel.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         RightWheel.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
@@ -62,7 +62,6 @@ public class ModuleLineFinder extends LinearOpMode {
         FloorRight = hardwareMap.i2cDevice.get("Right color sensor");
 
 
-
         FloorLeftReader = new I2cDeviceSynchImpl(FloorLeft, I2cAddr.create8bit(0x3a), false);
         FloorRightReader = new I2cDeviceSynchImpl(FloorRight, I2cAddr.create8bit(0x3e), false);
 
@@ -71,18 +70,16 @@ public class ModuleLineFinder extends LinearOpMode {
         FloorRightReader.engage();
         //This initialises the led state of the color sensors
 
-        if(FloorLeftLEDState){
+        if (FloorLeftLEDState) {
             FloorRightReader.write8(3, 0);    //Set the mode of the color sensor using LEDState
-        }
-        else{
+        } else {
             FloorLeftReader.write8(3, 1);    //Set the mode of the color sensor using LEDState
         }
 
 
-        if(FloorRightLEDState){
+        if (FloorRightLEDState) {
             FloorRightReader.write8(3, 0);    //Set the mode of the color sensor using LEDState
-        }
-        else{
+        } else {
             FloorRightReader.write8(3, 1);    //Set the mode of the color sensor using LEDState
         }
 
@@ -90,15 +87,16 @@ public class ModuleLineFinder extends LinearOpMode {
 
         rightFloorCache = FloorRightReader.read(0x04, 1);
 
-        telemetry.addData("Left Sees ",leftFloorCache[0] & 0xFF);
-        telemetry.addData("Right Sees ",rightFloorCache[0] & 0xFF );
+        telemetry.addData("Left Sees ", leftFloorCache[0] & 0xFF);
+        telemetry.addData("Right Sees ", rightFloorCache[0] & 0xFF);
         telemetry.update();
         waitForStart();
+
 
         double FLOOR_ACCEPTED_VAL_MIN = 1;
         int target;
 
-        int TARGET_INCREASE = 10;
+        int TARGET_INCREASE = 100;
         boolean canBreak = false;
 
 
@@ -111,15 +109,14 @@ public class ModuleLineFinder extends LinearOpMode {
                 && (leftFloorCache[0] & 0xFF) == (rightFloorCache[0] & 0xFF)) {
             FLOOR_ACCEPTED_VAL_MIN = ((rightFloorCache[0] & 0xFF)) + 1;
 
-            telemetry.addData ("New Floor accepted val min: ", FLOOR_ACCEPTED_VAL_MIN);
+            telemetry.addData("New Floor accepted val min: ", FLOOR_ACCEPTED_VAL_MIN);
 
         }
 
 
-
-
         canBreak = false;
-
+        boolean rightSawLine = false;
+        boolean leftSawLine = false;
         leftFloorCache = FloorLeftReader.read(0x04, 1);
         rightFloorCache = FloorRightReader.read(0x04, 1);
 
@@ -138,9 +135,10 @@ public class ModuleLineFinder extends LinearOpMode {
         LeftWheel.setPower(.3);
 
 
-        for(target = 1; (!canBreak) && opModeIsActive(); target += TARGET_INCREASE) {
-            int rightPosition = 0;
-            int leftPosition = 0;
+        for (target = 1; (!canBreak) && opModeIsActive(); target += TARGET_INCREASE) {
+            int rightPosition;
+            int leftPosition;
+
             telemetry.addLine("We are in teh For loop");
             telemetry.addData("The target currently is: ", target);
             telemetry.update();
@@ -149,47 +147,54 @@ public class ModuleLineFinder extends LinearOpMode {
             rightFloorCache = FloorRightReader.read(0x04, 1);
 
 
-
             if ((FLOOR_ACCEPTED_VAL_MIN <= (rightFloorCache[0] & 0xFF)) ||
-                    (FLOOR_ACCEPTED_VAL_MIN <= (leftFloorCache[0] & 0xFF))){
+                    (FLOOR_ACCEPTED_VAL_MIN <= (leftFloorCache[0] & 0xFF))) {
 
                 telemetry.addLine("One saw a line, looking....");
 
-                if (FLOOR_ACCEPTED_VAL_MIN <= (rightFloorCache[0] & 0xFF)) {
-                    rightPosition = RightWheel.getCurrentPosition();
-                    RightWheel.setTargetPosition(rightPosition);
-                    telemetry.addLine("Update: it was right");
-                    telemetry.addData("Right Final Position is: ", RightWheel.getCurrentPosition());
-                    telemetry.update();
+                leftFloorCache = FloorLeftReader.read(0x04, 1);
+                rightFloorCache = FloorRightReader.read(0x04, 1);
+                if (rightSawLine == false) {
+
+                    if (FLOOR_ACCEPTED_VAL_MIN <= (rightFloorCache[0] & 0xFF)) {
+                        rightPosition = RightWheel.getCurrentPosition();
+                        RightWheel.setTargetPosition(rightPosition);
+                        rightSawLine = true;
+                        telemetry.addLine("Update: it was right");
+                        telemetry.addData("Right Final Position is: ", RightWheel.getCurrentPosition());
+                        telemetry.update();
+                    } else {
+                        RightWheel.setTargetPosition(target);
+                    }
                 }
-                else{
+
+                if (leftSawLine == false) {
+                    if (FLOOR_ACCEPTED_VAL_MIN <= (leftFloorCache[0] & 0xFF)) {
+                        leftPosition = LeftWheel.getCurrentPosition();
+                        LeftWheel.setTargetPosition(leftPosition);
+                        leftSawLine = true;
+                        telemetry.addLine("Update: It was Left");
+                        telemetry.addData("Left Final position is ", LeftWheel.getCurrentPosition());
+                        telemetry.update();
+
+                    } else {
+                        LeftWheel.setTargetPosition(target);
+                    }
+
+                }
+            } else {
+                if (rightSawLine == false) {
                     RightWheel.setTargetPosition(target);
                 }
-
-                if (FLOOR_ACCEPTED_VAL_MIN <= (leftFloorCache[0] & 0xFF)) {
-                    leftPosition = LeftWheel.getCurrentPosition();
-                    LeftWheel.setTargetPosition(leftPosition);
-                    telemetry.addLine("Update: It was Left");
-                    telemetry.addData("Left Final position is " ,LeftWheel.getCurrentPosition());
-                    telemetry.update();
-
-                }
-                else{
+                if (leftSawLine == false) {
                     LeftWheel.setTargetPosition(target);
                 }
-            }
-            else {
-                RightWheel.setTargetPosition(target);
-                LeftWheel.setTargetPosition(target);
-
                 telemetry.addLine("Target is normal");
             }
 
 
-
             RightWheel.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             LeftWheel.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-
 
 
             if (LeftWheel.isBusy()) {
@@ -201,17 +206,38 @@ public class ModuleLineFinder extends LinearOpMode {
 
 
                     if (FLOOR_ACCEPTED_VAL_MIN <= (leftFloorCache[0] & 0xFF)) {
-                        LeftWheel.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-                        LeftWheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+                        if (leftSawLine == false) {
+                            leftPosition = LeftWheel.getCurrentPosition();
+                            LeftWheel.setTargetPosition(leftPosition);
 
-                        LeftWheel.setTargetPosition(0);
+                            leftSawLine = true;
 
-                        telemetry.addLine("Update: There is a line");
-                        telemetry.addData("Final target is: ", target);
-                        telemetry.addData("Wheel Position : ",leftPosition);
-                        telemetry.update();
-                        break;
 
+                            telemetry.addLine("Update: There is a line");
+                            telemetry.addData("Final target is: ", target);
+                            telemetry.addData("Wheel Position : ", leftPosition);
+                            telemetry.update();
+
+
+                        }
+                    }
+
+                    if (FLOOR_ACCEPTED_VAL_MIN <= (rightFloorCache[0] & 0xFF)) {
+
+                        if (rightSawLine == false) {
+                            rightPosition = RightWheel.getCurrentPosition();
+                            RightWheel.setTargetPosition(rightPosition);
+
+                            rightSawLine = true;
+
+                            RightWheel.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                            telemetry.addLine("Update: There is a line");
+                            telemetry.addData("Final target is: ", target);
+                            telemetry.addData("Wheel Position (Should match above): ", rightPosition);
+                            telemetry.update();
+
+
+                        }
                     }
 
 
@@ -226,40 +252,39 @@ public class ModuleLineFinder extends LinearOpMode {
                     leftFloorCache = FloorRightReader.read(0x04, 1);
 
                     if (FLOOR_ACCEPTED_VAL_MIN <= (rightFloorCache[0] & 0xFF)) {
-                        RightWheel.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-                        RightWheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-                        RightWheel.setTargetPosition(0);
 
-                        telemetry.addLine("Update: There is a line");
-                        telemetry.addData("Final target is: ", target);
-                        telemetry.addData("Wheel Position (Should match above): ",rightPosition);
-                        telemetry.update();
-                        break;
+                        if (rightSawLine == false) {
+                            rightPosition = RightWheel.getCurrentPosition();
+                            RightWheel.setTargetPosition(rightPosition);
 
+                            rightSawLine = true;
+
+
+                            telemetry.addLine("Update: There is a line");
+                            telemetry.addData("Final target is: ", target);
+                            telemetry.addData("Wheel Position (Should match above): ", rightPosition);
+                            telemetry.update();
+
+
+                        }
 
                     }
 
 
+                    if (leftSawLine && rightSawLine) {
+                        canBreak = true;
+                    }
                 }
 
-            }
+                telemetry.addLine("Job Done");
+                telemetry.addLine("Update: There is a line");
+                telemetry.addData("Final Right is: ", RightWheel.getCurrentPosition());
+                telemetry.addData("Final Left is:", LeftWheel.getCurrentPosition());
+                telemetry.update();
 
+                sleep(10000);
 
-
-
-            if(LeftWheel.getCurrentPosition() == leftPosition &&
-                    RightWheel.getCurrentPosition() == rightPosition){
-                canBreak = true;
             }
         }
-
-        telemetry.addLine("Job Done");
-        telemetry.addLine("Update: There is a line");
-        telemetry.addData("Final Right is: " , RightWheel.getCurrentPosition());
-        telemetry.addData("Final Left is:", LeftWheel.getCurrentPosition());
-        telemetry.update();
-
-        sleep(10000);
-
     }
 }

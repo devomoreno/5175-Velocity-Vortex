@@ -1,44 +1,48 @@
 package org.firstinspires.ftc.teamcode;
 
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.util.Range;
 
-@TeleOp(name="Simple: Just Drive", group="Basics")
-
+@TeleOp(name = "Test Cont Servo", group = "Module")
 //import all hardware going to be used
-public class JustDrive extends OpMode {
+public class TestContinuousServo extends OpMode {
     //name Dcmotors and for purpose of the program
     //ex:  Dcmotor Greg
-    private DcMotor LeftWheel;
-    private DcMotor RightWheel;
-    public JustDrive(){}
+    CRServo contiServo;
 
+    public TestContinuousServo(){}
 
     @Override
             public void init(){
-        LeftWheel =hardwareMap.dcMotor.get("LeftWheel");
-        RightWheel=hardwareMap.dcMotor.get("RightWheel");
-        LeftWheel.setDirection(DcMotor.Direction.REVERSE);
+        contiServo = hardwareMap.crservo.get("cServo");
+
 
         //map itemshere and set rules ( reference any vector baseline or basic programs)
 
     }
     @Override
             public void loop(){
-        float left=gamepad1.left_stick_y;
-        float right=gamepad1.right_stick_y;
 
-        right= Range.clip(right, -1, 1);
-        left = Range.clip(left, -1, 1);
+        float servoRotPower=gamepad1.left_stick_y;
 
-        right = (float)scaleInput(right);
-        left =  (float)scaleInput(left);
 
-        LeftWheel.setPower(left);
-        RightWheel.setPower(right);
+         servoRotPower= Range.clip(servoRotPower, -1, 1);
+
+
+
+        servoRotPower =  (float)scaleInput(servoRotPower);
+
+
+         contiServo.setPower(servoRotPower);
+
+        if(gamepad1.y){
+           contiServo.setPower(0);
+        }
+
     //set all the driver and gamepad options. this is where the program goes.
     }
     @Override

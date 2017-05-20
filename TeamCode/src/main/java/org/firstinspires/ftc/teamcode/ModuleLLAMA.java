@@ -25,20 +25,20 @@ public class ModuleLLAMA extends OpMode {
     @Override
             public void loop(){
     //set all the driver and gamepad options. this is where the program goes.
-        if (gamepad1.x){
-            LLAMA.setPower( 1 );
-        }
-        else{
-            LLAMA.setPower(0);
-        }
-        if (gamepad1.b){
-            LLAMA.setPower( -1 );
-        }
-        else{
-            LLAMA.setPower(0);
+
+        float LLAMAPower = gamepad2.right_stick_y;
+        LLAMAPower = Range.clip(LLAMAPower,-1,1);
+        LLAMAPower = (float)scaleInput((LLAMAPower));
+        LLAMA.setPower(Range.clip(LLAMAPower, -1,1));
+
+        if(gamepad1.y){
+            LLAMA.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            LLAMA.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         }
 
         telemetry.addData("LLAMA Value", LLAMA.getCurrentPosition());
+        telemetry.addData("LLAMA Power", LLAMA.getPower());
+
     }
     @Override
         public void stop(){

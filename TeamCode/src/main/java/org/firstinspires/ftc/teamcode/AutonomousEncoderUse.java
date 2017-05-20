@@ -29,7 +29,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
  cap ball off of the middle post and park.*/
 
 @Autonomous(name = "Encoder Buttons", group = "Sensors")
-
+@Disabled
 public class AutonomousEncoderUse extends LinearOpMode {
 
     private DcMotor LeftWheel;

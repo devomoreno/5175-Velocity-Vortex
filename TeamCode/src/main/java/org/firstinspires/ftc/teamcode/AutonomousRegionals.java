@@ -15,7 +15,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 
 /**
- * Created by Devin Moreno on 01/06/2017.5
+ * Created by Devin Moreno on 01/06/2017.
  *
  *   /*This Autonomous program assumes the Robot is positioned in the side clesest to the corner
  vortex and aimed at the first (nearest) of the color randomizers. This method has the
@@ -26,9 +26,9 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
  and once again, press the correct color button before turning the correct way to hit the
  cap ball off of the middle post and park.*/
 
-@Autonomous(name = "All for the show", group = "Sensors")
+@Autonomous(name = "Regional Button", group = "Sensors")
 
-public class AutonomousAllForTheShow extends LinearOpMode {
+public class AutonomousRegionals extends LinearOpMode {
 
     private DcMotor LeftWheel;
     private DcMotor RightWheel;
@@ -205,9 +205,14 @@ public class AutonomousAllForTheShow extends LinearOpMode {
 
             boolean canBreak = false;
             int target;
-
-
+            canBreak = false;
+            boolean rightSawLine = false;
+            boolean leftSawLine = false;
+            int TARGET_INCREASE = 500;
             int didPress;
+            int omnicientLeft;
+            int omnicientRight;
+            boolean didCross = false;
             double FLOOR_ACCEPTED_VAL_MIN = 1;
             double distance = 0.0;
             double ACCEPTED_DISTANCE_CLOSE = 11;
@@ -215,7 +220,6 @@ public class AutonomousAllForTheShow extends LinearOpMode {
             double ALLOWED_FROM_WALL_MIN = 11;
 
 
-            int TARGET_INCREASE = 10;
 
             //based on about where we have put the color sensor It cannot see the floor however can see
             //the tape albeit at a low value. Hence the reason I put the threshold origionally at 1
@@ -228,6 +232,7 @@ public class AutonomousAllForTheShow extends LinearOpMode {
             if ((leftFloorCache[0] & 0xFF) > 0 && (rightFloorCache[0] & 0xFF) > 0
                     && (leftFloorCache[0] & 0xFF) == (rightFloorCache[0] & 0xFF)) {
                 FLOOR_ACCEPTED_VAL_MIN = ((rightFloorCache[0] & 0xFF)) + 1;
+                telemetry.addData("New Floor accepted val min: ", FLOOR_ACCEPTED_VAL_MIN);
 
             }
 
@@ -249,8 +254,8 @@ public class AutonomousAllForTheShow extends LinearOpMode {
             RightWheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             LeftWheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
-            LeftWheel.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
             RightWheel.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            LeftWheel.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 
             RightWheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             LeftWheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
@@ -260,9 +265,9 @@ public class AutonomousAllForTheShow extends LinearOpMode {
             LeftWheel.setPower(.3);
 
 
-            for (target = 1; (!canBreak) && opModeIsActive(); target += TARGET_INCREASE) {
-                int rightPosition = 0;
-                int leftPosition = 0;
+//TODO: Make the approach slow and use encoders the whole time, probably a for loop
+            for(target = 0; (!canBreak) && opModeIsActive(); target += TARGET_INCREASE) {
+
                 telemetry.addLine("We are in teh For loop");
                 telemetry.addData("The target currently is: ", target);
                 telemetry.update();
@@ -271,99 +276,129 @@ public class AutonomousAllForTheShow extends LinearOpMode {
                 rightFloorCache = FloorRightReader.read(0x04, 1);
 
 
-                if ((FLOOR_ACCEPTED_VAL_MIN <= (rightFloorCache[0] & 0xFF)) ||
-                        (FLOOR_ACCEPTED_VAL_MIN <= (leftFloorCache[0] & 0xFF))) {
+                if (FLOOR_ACCEPTED_VAL_MIN <= (leftFloorCache[0] & 0xFF)) {
+                    LeftWheel.setPower(0);
+                    RightWheel.setPower(0);
+                    int leftPosition = LeftWheel.getCurrentPosition();
+                    int rightPosition = RightWheel.getCurrentPosition();
+                    LeftWheel.setTargetPosition(leftPosition);
+                    RightWheel.setTargetPosition(rightPosition);
 
-                    telemetry.addLine("One saw a line, looking....");
+                    telemetry.addLine("Lft a line");
+                    telemetry.addData("Left Wheel Position is: ", LeftWheel.getCurrentPosition());
+                    telemetry.update();
 
-                    if (FLOOR_ACCEPTED_VAL_MIN <= (rightFloorCache[0] & 0xFF)) {
-                        rightPosition = RightWheel.getCurrentPosition();
-                        RightWheel.setTargetPosition(rightPosition);
-                        telemetry.addLine("Update: it was right");
-                        telemetry.addData("Right Final Position is: ", RightWheel.getCurrentPosition());
-                        telemetry.update();
-                    } else {
-                        RightWheel.setTargetPosition(target);
-                    }
+                    canBreak = true;
 
-                    if (FLOOR_ACCEPTED_VAL_MIN <= (leftFloorCache[0] & 0xFF)) {
-                        leftPosition = LeftWheel.getCurrentPosition();
-                        LeftWheel.setTargetPosition(leftPosition);
-                        telemetry.addLine("Update: It was Left");
-                        telemetry.addData("Left Final position is ", LeftWheel.getCurrentPosition());
-                        telemetry.update();
-
-                    } else {
-                        LeftWheel.setTargetPosition(target);
-                    }
                 } else {
-                    RightWheel.setTargetPosition(target);
                     LeftWheel.setTargetPosition(target);
+                    RightWheel.setTargetPosition(target);
 
-                    telemetry.addLine("Target is normal");
                 }
-
-
-                RightWheel.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 LeftWheel.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-
-
+                RightWheel.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                 if (LeftWheel.isBusy()) {
-                    telemetry.addLine("Left is busy loop");
                     while ((LeftWheel.isBusy()) && opModeIsActive()) {
 
-                        rightFloorCache = FloorRightReader.read(0x04, 1);
-                        leftFloorCache = FloorRightReader.read(0x04, 1);
 
+                        leftFloorCache = FloorLeftReader.read(0x04, 1);
+                        rightFloorCache = FloorRightReader.read(0x04, 1);
 
                         if (FLOOR_ACCEPTED_VAL_MIN <= (leftFloorCache[0] & 0xFF)) {
-                            LeftWheel.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-                            LeftWheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-
-                            LeftWheel.setTargetPosition(0);
-
-                            telemetry.addLine("Update: There is a line");
-                            telemetry.addData("Final target is: ", target);
-                            telemetry.addData("Wheel Position : ", leftPosition);
+                            LeftWheel.setPower(0);
+                            RightWheel.setPower(0);
+                            int leftPosition = LeftWheel.getCurrentPosition();
+                            int rightPosition = RightWheel.getCurrentPosition();
+                            omnicientLeft  = leftPosition;
+                            LeftWheel.setTargetPosition(leftPosition);
+                            RightWheel.setTargetPosition(rightPosition);
+                            LeftWheel.setPower(.3);
+                            RightWheel.setPower(.3);
+                            LeftWheel.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                            RightWheel.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                            telemetry.addLine("Lft a line");
+                            telemetry.addData("Left Wheel Position is: ", LeftWheel.getCurrentPosition());
                             telemetry.update();
-                            break;
 
+
+                            canBreak = true;
                         }
-
-
+                        if (FLOOR_ACCEPTED_VAL_MIN <= (rightFloorCache[0] & 0xFF)) {
+                            RightWheel.setPower(0);
+                            omnicientRight = RightWheel.getCurrentPosition();
+                            RightWheel.setTargetPosition(omnicientRight);
+                            didCross = true;
+                        }
                     }
                 }
-                if (RightWheel.isBusy()) {
-                    telemetry.addLine("Right is busy loop");
+
+            }
+
+            canBreak =false;
+
+            RightWheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+            RightWheel.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+            RightWheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+
+//TODO: Make the approach slow and use encoders the whole time, probably a for loop
+            for(target = 0; (!canBreak) && opModeIsActive(); target += TARGET_INCREASE) {
+
+                telemetry.addLine("We are in teh For loop");
+                telemetry.addData("The target currently is: ", target);
+                telemetry.update();
+
+                if(didCross){
+                    RightWheel.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                }
+
+                leftFloorCache = FloorLeftReader.read(0x04, 1);
+                rightFloorCache = FloorRightReader.read(0x04, 1);
+
+                if (FLOOR_ACCEPTED_VAL_MIN <= (rightFloorCache[0] & 0xFF)) {
+
+                    RightWheel.setPower(0);
+                    int rightPosition = RightWheel.getCurrentPosition();
+                    RightWheel.setTargetPosition(rightPosition);
+                    telemetry.addLine("Update: There is a line");
+                    telemetry.addData("Final target is: ", target);
+                    telemetry.addData("Wheel Position is(Should match above): ", RightWheel.getCurrentPosition());
                     telemetry.update();
+
+                    canBreak = true;
+
+                } else {
+                    RightWheel.setTargetPosition(target);
+
+                }
+                RightWheel.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+                if (RightWheel.isBusy()) {
                     while ((RightWheel.isBusy()) && opModeIsActive()) {
 
+                        leftFloorCache = FloorLeftReader.read(0x04, 1);
                         rightFloorCache = FloorRightReader.read(0x04, 1);
-                        leftFloorCache = FloorRightReader.read(0x04, 1);
 
                         if (FLOOR_ACCEPTED_VAL_MIN <= (rightFloorCache[0] & 0xFF)) {
-                            RightWheel.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-                            RightWheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-                            RightWheel.setTargetPosition(0);
+                            RightWheel.setPower(0);
+                            int rightPosition = RightWheel.getCurrentPosition();
+                            RightWheel.setTargetPosition(rightPosition);
 
+                            RightWheel.setPower(.3);
+                            RightWheel.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                            RightWheel.setTargetPosition(rightPosition);
+
+                            RightWheel.setMode(DcMotor.RunMode.RUN_TO_POSITION);
                             telemetry.addLine("Update: There is a line");
                             telemetry.addData("Final target is: ", target);
-                            telemetry.addData("Wheel Position (Should match above): ", rightPosition);
+                            telemetry.addData("Wheel Position (Should match above): ",rightPosition);
                             telemetry.update();
-                            break;
 
-
+                            canBreak = true;
                         }
-
-
                     }
-
-                }
-
-                if (LeftWheel.getCurrentPosition() == leftPosition &&
-                        RightWheel.getCurrentPosition() == rightPosition) {
-                    telemetry.addLine("We should be on the Line");
-                    canBreak = true;
                 }
             }
 
@@ -376,6 +411,17 @@ public class AutonomousAllForTheShow extends LinearOpMode {
             //gets the robot within an accepted distance by inching it toward the wall. This is done by
             //bakcing up, and sending the left wheel forward first, then matching the right side to the
             //white line
+            distance = rangeSensor.getDistance(DistanceUnit.CM);
+            leftFloorCache = FloorLeftReader.read(0x04, 1);
+            topCache = beaconFlagReader.read(0x04, 1);
+            rightFloorCache = FloorRightReader.read(0x04, 1);
+
+
+
+            canBreak = false;
+
+            TARGET_INCREASE = 100;
+
             distance = rangeSensor.getDistance(DistanceUnit.CM);
             if (ACCEPTED_DISTANCE_FAR < distance) {
                 telemetry.addLine("Distance is a little off, correcting... ");
@@ -392,7 +438,7 @@ public class AutonomousAllForTheShow extends LinearOpMode {
                     RightWheel.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
                     LeftWheel.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
                     RightWheel.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
-                    LLAMA.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+
                     LeftWheel.setPower(-.5);
                     RightWheel.setPower(-.5);
                     sleep(300);
@@ -413,7 +459,6 @@ public class AutonomousAllForTheShow extends LinearOpMode {
 
 
                     LeftWheel.setPower(.3);
-
 
 
                     for (target = 0; (!canBreak) && opModeIsActive(); target += TARGET_INCREASE) {
@@ -463,80 +508,8 @@ public class AutonomousAllForTheShow extends LinearOpMode {
                             }
                         }
                     }
-                    canBreak = false;
-
-
-                    RightWheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-
-                    RightWheel.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-
-                    RightWheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-
-
-                    RightWheel.setPower(.3);
-
-
-                    for (target = 0; (!canBreak) && opModeIsActive(); target += TARGET_INCREASE) {
-
-                        telemetry.addLine("We are in teh For loop");
-                        telemetry.addData("The target currently is: ", target);
-                        telemetry.update();
-
-                        leftFloorCache = FloorLeftReader.read(0x04, 1);
-                        topCache = beaconFlagReader.read(0x04, 1);
-                        rightFloorCache = FloorRightReader.read(0x04, 1);
-
-
-                        if (FLOOR_ACCEPTED_VAL_MIN <= (rightFloorCache[0] & 0xFF)) {
-                            int rightPosition = RightWheel.getCurrentPosition();
-                            RightWheel.setTargetPosition(rightPosition);
-                            telemetry.addLine("Update: There is a line");
-                            telemetry.addData("Final target is: ", target);
-                            telemetry.addData("Wheel Position is(Should match above): ", RightWheel.getCurrentPosition());
-                            telemetry.update();
-
-                            canBreak = true;
-
-                        } else {
-                            RightWheel.setTargetPosition(target);
-
-                        }
-                        RightWheel.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-
-                        if (RightWheel.isBusy()) {
-                            while ((RightWheel.isBusy()) && opModeIsActive()) {
-
-                                leftFloorCache = FloorLeftReader.read(0x04, 1);
-                                topCache = beaconFlagReader.read(0x04, 1);
-                                rightFloorCache = FloorRightReader.read(0x04, 1);
-
-                                if (FLOOR_ACCEPTED_VAL_MIN <= (rightFloorCache[0] & 0xFF)) {
-                                    int rightPosition = RightWheel.getCurrentPosition();
-                                    RightWheel.setTargetPosition(rightPosition);
-                                    RightWheel.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-                                    telemetry.addLine("Update: There is a line");
-                                    telemetry.addData("Final target is: ", target);
-                                    telemetry.addData("Wheel Position (Should match above): ", rightPosition);
-                                    telemetry.update();
-
-                                    canBreak = true;
-                                }
-                            }
-                        }
-                    }
-                    //FIXME
-
-
-                    distance = rangeSensor.getDistance(DistanceUnit.CM);
-                    if (ACCEPTED_DISTANCE_FAR > distance) {
-                        break;
-                    }
-
                 }
-
-                distance = rangeSensor.getDistance(DistanceUnit.CM);
             }
-
             telemetry.addLine("Distance looks good, looking for button...");
             telemetry.update();
 

@@ -60,8 +60,9 @@ public class AutonomousTimeLLAMAJustShoot extends LinearOpMode {
 
 
        //Start off by shooting the preloaded ball
-      LLAMA.setPower(1);
+      LLAMA.setPower(.5);
         sleep(3000);
+        LLAMA.setPower(0);
 
 
 // may need to use isBusy to make it wait and not do everything at once, will see though

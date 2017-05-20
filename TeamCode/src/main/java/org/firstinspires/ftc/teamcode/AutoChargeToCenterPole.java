@@ -11,7 +11,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
  * Created by William Lord on 12/10/2016.
  */
 @Autonomous(name = "Charge to Center Pole", group = "LinearOpMode")
-
+@Disabled
 public class AutoChargeToCenterPole extends LinearOpMode {
     private DcMotor LeftWheel;
     private DcMotor RightWheel;

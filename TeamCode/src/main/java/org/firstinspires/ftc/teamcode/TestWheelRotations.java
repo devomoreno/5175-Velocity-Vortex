@@ -19,9 +19,10 @@ public class TestWheelRotations extends OpMode {
     @Override
             public void init(){
         RightWheel =hardwareMap.dcMotor.get("RightWheel");
-        RightWheel.setDirection(DcMotorSimple.Direction.REVERSE);
+        LeftWheel.setDirection(DcMotorSimple.Direction.REVERSE);
         LeftWheel = hardwareMap.dcMotor.get ("LeftWheel");
-
+        LeftWheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        RightWheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
 
         //map itemshere and set rules ( reference any vector baseline or basic programs)
@@ -46,6 +47,9 @@ public class TestWheelRotations extends OpMode {
         if(gamepad1.y){
             LeftWheel.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
             RightWheel.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+            LeftWheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            RightWheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         }
 
         telemetry.addData("Right value ", RightWheel.getCurrentPosition());

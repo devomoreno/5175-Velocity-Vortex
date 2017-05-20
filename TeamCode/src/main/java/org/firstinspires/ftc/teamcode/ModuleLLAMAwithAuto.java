@@ -27,24 +27,29 @@ public class ModuleLLAMAwithAuto extends OpMode {
             public void loop(){
 
         //TODO use actual rotation numbers as definded by the rotation tester
-        int maxPosition = 12;
-
+        int maxPosition = 1730;
+        int LLAMAmin = 0;
+        if (LLAMA.getCurrentPosition()>LLAMAmin ){
         float LLAMAPower = gamepad2.right_stick_y;
         LLAMAPower = Range.clip(LLAMAPower,-1,1);
         LLAMAPower = (float)scaleInput((LLAMAPower));
         LLAMA.setPower(Range.clip(LLAMAPower, -1,1));
 
-        if(LLAMA.getCurrentPosition() > maxPosition+1){
+        if(LLAMA.getCurrentPosition() > maxPosition+10){
             LLAMA.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            LLAMA.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        }
+        if(LLAMA.getCurrentPosition()<LLAMAmin){
+            LLAMA.setPower(0);
         }
 
         telemetry.addData("LLAMA Value", LLAMA.getCurrentPosition());
 
-        if((gamepad2.a)){
+        if((gamepad2.a)) {
             LLAMA.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
             LLAMA.setTargetPosition(maxPosition);
             LLAMA.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-
+        }
         }
     }
     @Override

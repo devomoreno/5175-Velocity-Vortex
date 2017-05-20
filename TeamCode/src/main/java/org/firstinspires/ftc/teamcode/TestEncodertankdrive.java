@@ -1,27 +1,29 @@
 package org.firstinspires.ftc.teamcode;
 
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.Range;
 
-@TeleOp(name="Simple: Just Drive", group="Basics")
-
 //import all hardware going to be used
-public class JustDrive extends OpMode {
-    //name Dcmotors and for purpose of the program
-    //ex:  Dcmotor Greg
-    private DcMotor LeftWheel;
-    private DcMotor RightWheel;
-    public JustDrive(){}
+@TeleOp(name = "Encoder Tank drive", group = "Test")
 
+public class TestEncodertankdrive extends OpMode {
+    //name Dcmotors and for purpose of the program
+    //ex:  Dcm
+    // otor Greg
+    DcMotor LeftWheel;
+    DcMotor RightWheel;
+    public TestEncodertankdrive(){}
 
     @Override
             public void init(){
-        LeftWheel =hardwareMap.dcMotor.get("LeftWheel");
-        RightWheel=hardwareMap.dcMotor.get("RightWheel");
+        LeftWheel = hardwareMap.dcMotor.get("LeftWheel");
+        RightWheel = hardwareMap.dcMotor.get("RightWheel");
         LeftWheel.setDirection(DcMotor.Direction.REVERSE);
+
+        RightWheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        LeftWheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         //map itemshere and set rules ( reference any vector baseline or basic programs)
 
@@ -37,8 +39,27 @@ public class JustDrive extends OpMode {
         right = (float)scaleInput(right);
         left =  (float)scaleInput(left);
 
-        LeftWheel.setPower(left);
-        RightWheel.setPower(right);
+        float rightComp = RightWheel.getCurrentPosition() + (right * 100);
+        float leftComp = LeftWheel.getCurrentPosition() + (left * 100);
+        RightWheel.setPower(1);
+        LeftWheel.setPower(1);
+        RightWheel.setTargetPosition((int)rightComp);
+        LeftWheel.setTargetPosition((int) leftComp);
+
+        RightWheel.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        LeftWheel.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+        if(gamepad1.y){
+            LeftWheel.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            RightWheel.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+            LeftWheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+            RightWheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        }
+
+        telemetry.addData("Right value ", RightWheel.getCurrentPosition());
+        telemetry.addData("Left Value", LeftWheel.getCurrentPosition());
+
     //set all the driver and gamepad options. this is where the program goes.
     }
     @Override
@@ -53,9 +74,9 @@ public class JustDrive extends OpMode {
         // get the corresponding index for the scaleInput array.
         int index = (int) (dVal * 16.0);
         if (index < 0) {
-            index = -index;
-        } else if (index > 16) {
-            index = 16;
+                index = -index;
+            } else if (index > 16) {
+                index = 16;
         }
 
         double dScale = 0.0;

@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cRangeSensor;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -12,6 +13,7 @@ import com.qualcomm.robotcore.hardware.I2cDeviceSynchImpl;
 import com.qualcomm.robotcore.hardware.Servo;
 
 @Autonomous(name = "Time LLAMA then Park")
+@Disabled
 /**
  * Created by d3499 on 9/24/2016.
  */
@@ -108,7 +110,7 @@ public class AutonomousTimeLLAMAandPark extends LinearOpMode {
         //move forward
         LeftWheel.setPower(1);
         RightWheel.setPower(1);
-        sleep(6000);
+        sleep(7500);
 
 // may need to use isBusy to make it wait and not do everything at once, will see though
 

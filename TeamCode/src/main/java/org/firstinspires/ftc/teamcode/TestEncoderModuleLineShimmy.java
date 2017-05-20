@@ -20,9 +20,9 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
  * This module tests the function of going to a white line and then straightening up on it
  */
 
-    @Autonomous(name = "Line Shimmy 2", group = "Sensors")
-    @Disabled
-    public class TestCaseModuleLineShimmy extends LinearOpMode {
+    @Autonomous(name = "Encoder For Shimmy", group = "Sensors")
+
+    public class TestEncoderModuleLineShimmy extends LinearOpMode {
 
     DcMotor LeftWheel;
     DcMotor RightWheel;
@@ -50,7 +50,6 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
     boolean beaconFlagLEDState = true;     //Tracks the mode of the color sensor; Active = true, Passive = false
     boolean FloorRightLEDState = true;
     boolean FloorLeftLEDState = true;
-
 
 
     public void runOpMode() throws InterruptedException {
@@ -115,41 +114,97 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 
         int FLOOR_ACCEPTED_VAL_MIN = 1;
+        boolean canBreak = false;
+        int target;
+        int TARGET_INCREASE = 10;
+
         distance = rangeSensor.getDistance(DistanceUnit.CM);
-        while (opModeIsActive() && (distance > ACCEPTED_DISTANCE_FAR)) {
-            distance = rangeSensor.getDistance(DistanceUnit.CM);
-            LeftWheel.setPower(-.3);
-            RightWheel.setPower(-.3);
-            sleep(500);
-            LeftWheel.setPower(0);
-            RightWheel.setPower(0);
+        if (ACCEPTED_DISTANCE_FAR < distance) {
+            telemetry.addLine("Distance is a little off, correcting... ");
+            telemetry.update();
+            while ((opModeIsActive()) && ACCEPTED_DISTANCE_FAR < distance) {
 
-            while (opModeIsActive() && (!((FLOOR_ACCEPTED_VAL_MIN <= (leftFloorCache[0] & 0xFF) ||
-                    FLOOR_ACCEPTED_VAL_MIN <= (rightFloorCache[0] & 0xFF))))) {
+                if (ACCEPTED_DISTANCE_FAR > distance) {
 
-                leftFloorCache = FloorLeftReader.read(0x04, 1);
-                rightFloorCache = FloorRightReader.read(0x04, 1);
-
-
-                if (!(FLOOR_ACCEPTED_VAL_MIN <= (leftFloorCache[0] & 0xFF))) {
-                    LeftWheel.setPower(.3);
-                } else {
-
-                    LeftWheel.setPower(0);
-                }
-                if (!(FLOOR_ACCEPTED_VAL_MIN <= (leftFloorCache[0] & 0xFF))) {
-                    RightWheel.setPower(.3);
-                } else {
-
-                    RightWheel.setPower(0);
-                }
-                distance = rangeSensor.getDistance(DistanceUnit.CM);
-                if (distance < ACCEPTED_DISTANCE_FAR) {
+                    telemetry.addLine("Job Done");
+                    telemetry.update();
                     break;
                 }
+                LeftWheel.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                RightWheel.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+                LeftWheel.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+                RightWheel.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
+                LeftWheel.setPower(-.5);
+                RightWheel.setPower(-.5);
+                sleep(300);
+                RightWheel.setPower(0);
+                LeftWheel.setPower(0);
+
+
+                leftFloorCache = FloorLeftReader.read(0x04, 1);
+                topCache = beaconFlagReader.read(0x04, 1);
+                rightFloorCache = FloorRightReader.read(0x04, 1);
+                LeftWheel.setPower(.3);
+
+                LeftWheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+                LeftWheel.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+                LeftWheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
+
+                LeftWheel.setPower(.3);
+
+
+                for (target = 0; (!canBreak) && opModeIsActive(); target += TARGET_INCREASE) {
+
+                    telemetry.addLine("We are in teh For loop");
+                    telemetry.addData("The target currently is: ", target);
+                    telemetry.update();
+
+                    leftFloorCache = FloorLeftReader.read(0x04, 1);
+                    topCache = beaconFlagReader.read(0x04, 1);
+                    rightFloorCache = FloorRightReader.read(0x04, 1);
+
+                    if (FLOOR_ACCEPTED_VAL_MIN <= (leftFloorCache[0] & 0xFF)) {
+                        int leftPosition = LeftWheel.getCurrentPosition();
+                        LeftWheel.setTargetPosition(leftPosition);
+                        telemetry.addLine("Update: There is a line");
+                        telemetry.addData("Final target is: ", target);
+                        telemetry.addData("Wheel Position is(Should match above): ", LeftWheel.getCurrentPosition());
+                        telemetry.update();
+
+                        canBreak = true;
+
+                    } else {
+                        LeftWheel.setTargetPosition(target);
+
+                    }
+                    LeftWheel.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+                    if (LeftWheel.isBusy()) {
+                        while ((LeftWheel.isBusy()) && opModeIsActive()) {
+
+                            leftFloorCache = FloorLeftReader.read(0x04, 1);
+                            topCache = beaconFlagReader.read(0x04, 1);
+                            rightFloorCache = FloorRightReader.read(0x04, 1);
+
+                            if (FLOOR_ACCEPTED_VAL_MIN <= (leftFloorCache[0] & 0xFF)) {
+                                int leftPosition = LeftWheel.getCurrentPosition();
+                                LeftWheel.setTargetPosition(leftPosition);
+                                LeftWheel.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+                                telemetry.addLine("Update: There is a line");
+                                telemetry.addData("Final target is: ", target);
+                                telemetry.addData("Wheel Position (Should match above): ", leftPosition);
+                                telemetry.update();
+
+                                canBreak = true;
+                            }
+                        }
+                    }
+                }
             }
-
         }
     }
 }

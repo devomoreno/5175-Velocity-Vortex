@@ -4,7 +4,7 @@ import com.qualcomm.hardware.modernrobotics.ModernRoboticsI2cRangeSensor;
 import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.ColorSensor;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.I2cAddr;
 import com.qualcomm.robotcore.hardware.I2cDevice;
@@ -13,16 +13,13 @@ import com.qualcomm.robotcore.hardware.I2cDeviceSynchImpl;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.Range;
 
-
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-
-@TeleOp(name="Sensor Op", group="Opmode")
+@TeleOp(name="LLAMA + Screw sensor Op", group="Opmode")
 @Disabled
 /*
 
 import all hardware going to be used
 */
-public class ContestSingleBPWithSenses extends OpMode{
+public class ContestLLAMAandScrewWithSenses extends OpMode{
     //name Dcmotors and for purpose of the program
     //ex:  Dcmotor Greg
 
@@ -32,6 +29,7 @@ public class ContestSingleBPWithSenses extends OpMode{
     private DcMotor LLAMA;
     private ModernRoboticsI2cRangeSensor rangeSensor;
     private Servo buttonPusher;
+    private CRServo screw;
 
     double FLOOR_ACCEPTED_VAL_MIN = 0;
     double FLOOR_ACCEPTED_VAL_MAX = 30;
@@ -63,7 +61,7 @@ public class ContestSingleBPWithSenses extends OpMode{
 
 
 
-    public ContestSingleBPWithSenses(){}
+    public ContestLLAMAandScrewWithSenses(){}
 
     @Override
             public void init(){
@@ -74,12 +72,14 @@ public class ContestSingleBPWithSenses extends OpMode{
         RightWheel.setDirection(DcMotor.Direction.REVERSE);
         buttonPusher = hardwareMap.servo.get("Button Pusher");
 
+        LLAMA= hardwareMap.dcMotor.get("LLAMA");
+
 
         double PUSHER_MIN = 0;
         double PUSHER_MAX = 1;
         buttonPusher.scaleRange(PUSHER_MIN,PUSHER_MAX);
         buttonPusher.setDirection(Servo.Direction.REVERSE);
-
+        screw = hardwareMap.crservo.get("cServo");
 
         beaconFlagSensor = hardwareMap.i2cDevice.get("color sensor");
         FloorLeft = hardwareMap.i2cDevice.get("Left color sensor");
@@ -96,8 +96,6 @@ public class ContestSingleBPWithSenses extends OpMode{
 
         FloorRightReader.write8(3, 0);    //Set the mode of the color sensor using LEDState
         FloorRightReader.write8(3, 0);
-
-
         //map items here and set rules ( reference any vector baseline or basic programs)
 
 
@@ -116,12 +114,16 @@ public class ContestSingleBPWithSenses extends OpMode{
         float right1 = gamepad1.left_stick_y;
         float left2 = gamepad2.right_stick_y;
         float right2 = gamepad2.left_stick_y;
+        float lTrigger2 = gamepad2.left_trigger;
+        float rTrigger2 = gamepad2.right_trigger;
 
 
         right1 = Range.clip(right1, -1, 1);
         left1 = Range.clip(left1, -1, 1);
         right2 = Range.clip(right2, -1, 1);
         left2 = Range.clip(left2, -1, 1);
+        lTrigger2 = Range.clip(lTrigger2, -1, 0);
+        rTrigger2 = Range.clip(rTrigger2, 0, 1);
 
         right1 = (float) scaleInput(right1);
         left1 = (float) scaleInput(left1);
@@ -134,13 +136,13 @@ public class ContestSingleBPWithSenses extends OpMode{
          taken into account. */
        RightWheel.setPower(Range.clip(right1 + right2, -1, 1));
 
-        if (gamepad1.right_bumper || gamepad2.left_bumper) {
+        if (gamepad1.right_bumper) {
             if (ServoPosition != 1) {
                 ServoPosition += servoDelta;
             }
         }
 
-        if (gamepad1.right_trigger > 0 || gamepad2.left_trigger > 0) {
+        if ( gamepad1.right_trigger > 0) {
             if (ServoPosition != 0) {
                 ServoPosition -= servoDelta;
             }
@@ -148,6 +150,7 @@ public class ContestSingleBPWithSenses extends OpMode{
 
 
         buttonPusher.setPosition(ServoPosition);
+        screw.setPower(lTrigger2 + rTrigger2);
 
         // This part will be an automated process to press the button, It will use teh range sensor
         //and the color sensors on the bottom to press teh button more effecitnely.
@@ -163,9 +166,7 @@ public class ContestSingleBPWithSenses extends OpMode{
                 colorFloorLeftCache = FloorLeftReader.read(0x04, 1);
                 colorFloorRightCache = FloorRightReader.read(0x04, 1);
 
-                if (((RightWheel.getPower())==0)  && ((LeftWheel.getPower()) ==0)){
-                    break;
-                }
+
                 if (FLOOR_ACCEPTED_VAL_MIN <= (colorFloorLeftCache[0] & 0xFF)) {
                     LeftWheel.setPower(0);
                 }
@@ -180,6 +181,19 @@ public class ContestSingleBPWithSenses extends OpMode{
 
             }
 
+        }
+
+        if (gamepad1.left_bumper){
+            LLAMA.setPower( 1 );
+        }
+        else{
+            LLAMA.setPower(0);
+        }
+        if (gamepad1.right_trigger > 0){
+            LLAMA.setPower( -1 );
+        }
+        else{
+            LLAMA.setPower(0);
         }
 
     }
